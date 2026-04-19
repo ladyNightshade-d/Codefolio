@@ -282,7 +282,7 @@ function App() {
           </div>
 
           <div className="site-footer__bottom">
-            {"\u00A9 2026 CODEFOLIO \u2014 PROJECT MANAGEMENT"}
+            {"\u00A9 2026 Codefolio \u2014 Project Management"}
           </div>
         </div>
       </footer>
