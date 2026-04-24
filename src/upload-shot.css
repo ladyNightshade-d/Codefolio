@@ -158,10 +158,10 @@
 
 .upload-shot-page__title {
   margin: 0;
-  font-size: clamp(2.5rem, 4.8vw, 3.7rem);
-  line-height: 0.98;
+  font-size: clamp(1.8rem, 3.5vw, 2.75rem);
+  line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.05em;
 }
 
 .upload-shot-page__copy {
@@ -370,10 +370,10 @@
 
 .upload-shot-page__details-title {
   margin: 0;
-  font-size: clamp(3rem, 5vw, 3.95rem);
-  line-height: 0.96;
+  font-size: clamp(1.9rem, 4vw, 2.85rem);
+  line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.075em;
+  letter-spacing: -0.05em;
 }
 
 .upload-shot-page__details-form {
@@ -393,10 +393,10 @@
 
 .upload-shot-page__section-title {
   margin: 0;
-  font-size: clamp(2.15rem, 3.1vw, 2.75rem);
-  line-height: 1.04;
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  line-height: 1.2;
   font-weight: 700;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.045em;
   color: #101010;
 }
 
@@ -793,8 +793,8 @@
   }
 
   .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__title {
-    font-size: clamp(2.35rem, 4.7vw, 3.45rem);
-    line-height: 1;
+    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
+    line-height: 1.1;
   }
 
   .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__copy {
@@ -902,7 +902,7 @@
   }
 
   .upload-shot-page__title {
-    font-size: clamp(2.15rem, 9vw, 2.9rem);
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
   }
 
   .upload-shot-page__dropzone {
@@ -916,11 +916,11 @@
   }
 
   .upload-shot-page__details-title {
-    font-size: clamp(2rem, 9vw, 2.8rem);
+    font-size: clamp(1.7rem, 8vw, 2.3rem);
   }
 
   .upload-shot-page__section-title {
-    font-size: 1.55rem;
+    font-size: 1.35rem;
   }
 
   .upload-shot-page__thumbnail-column {

@@ -227,10 +227,10 @@
   display: grid;
   justify-items: center;
   width: 100%;
-  min-height: 540px;
-  padding: 90px 32px 78px;
-  border: 2px dashed #ece8e2;
-  border-radius: 40px;
+  min-height: 280px;
+  padding: 48px 32px 42px;
+  border: 1px dashed #ece8e2;
+  border-radius: 30px;
   background: #ffffff;
   text-align: center;
 }
@@ -239,17 +239,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 98px;
-  height: 98px;
+  width: 68px;
+  height: 68px;
   margin: 0 auto;
   border-radius: 999px;
   background: #f6f6f6;
-  box-shadow: 0 18px 34px rgba(18, 18, 18, 0.05);
+  box-shadow: 0 12px 24px rgba(18, 18, 18, 0.04);
 }
 
 .profile-page__upload-icon {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   stroke: #111111;
   stroke-width: 1.9;
   stroke-linecap: round;
@@ -258,21 +258,21 @@
 
 .profile-page__empty-title {
   max-width: 520px;
-  margin: 40px 0 0;
-  font-size: clamp(2rem, 3vw, 2.9rem);
-  line-height: 1;
+  margin: 22px 0 0;
+  font-size: clamp(1.4rem, 2vw, 1.75rem);
+  line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.05em;
   color: #101010;
   text-wrap: balance;
 }
 
 .profile-page__empty-copy {
-  max-width: 560px;
-  margin: 18px auto 0;
-  font-size: clamp(1rem, 1.15vw, 1.1rem);
-  line-height: 1.58;
-  letter-spacing: -0.03em;
+  max-width: 480px;
+  margin: 10px auto 0;
+  font-size: clamp(0.92rem, 0.95vw, 1rem);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
   color: #6c7178;
   text-wrap: pretty;
 }
@@ -281,16 +281,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
-  margin-top: 36px;
-  padding: 0 38px;
+  min-height: 52px;
+  margin-top: 28px;
+  padding: 0 32px;
   border-radius: 999px;
   background: #111111;
-  box-shadow: 0 16px 32px rgba(10, 10, 10, 0.12);
+  box-shadow: 0 12px 24px rgba(10, 10, 10, 0.1);
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
 }
 
 .profile-page__upload-button:hover {
@@ -343,8 +343,13 @@
 
 .profile-page__shots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
+}
+
+.profile-page__shots-grid--collections {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 348px));
+  justify-content: start;
 }
 
 .profile-page__shots-grid--projects {
@@ -463,7 +468,7 @@
 .profile-page__shot-media,
 .profile-page__collection-media {
   position: relative;
-  aspect-ratio: 1.18;
+  aspect-ratio: 1.34;
   background: #f4f4f4;
 }
 
@@ -481,8 +486,8 @@
 
 .profile-page__shot-footer {
   display: grid;
-  gap: 18px;
-  padding: 24px 24px 26px;
+  gap: 10px;
+  padding: 16px 18px 18px;
 }
 
 .profile-page__shot-footer--project {
@@ -515,10 +520,10 @@
 
 .profile-page__shot-title {
   margin: 0;
-  font-size: 1.38rem;
-  line-height: 1.06;
+  font-size: 1.18rem;
+  line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   color: #111111;
 }
 
@@ -844,9 +849,9 @@
   }
 
   .profile-page__empty-state {
-    min-height: 480px;
-    padding: 78px 24px 66px;
-    border-radius: 34px;
+    min-height: 240px;
+    padding: 38px 20px 34px;
+    border-radius: 24px;
   }
 
   .profile-page__projects-section {
@@ -946,9 +951,9 @@
   }
 
   .profile-page__empty-state {
-    min-height: 400px;
-    padding: 54px 16px 44px;
-    border-radius: 26px;
+    min-height: 220px;
+    padding: 32px 14px 28px;
+    border-radius: 20px;
   }
 
   .profile-page__projects-actions {
