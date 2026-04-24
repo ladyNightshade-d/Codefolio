@@ -128,12 +128,13 @@ export function DashboardHeader({
   chatActive = false,
   onChatClick,
 }) {
+  const headerClassName = `dashboard-header ${chatActive ? 'dashboard-header--solid' : ''}`;
   const chatButtonClassName = `dashboard-header__chat-button ${
     chatActive ? 'dashboard-header__chat-button--active' : ''
   }`;
 
   return (
-    <header className="dashboard-header">
+    <header className={headerClassName}>
       <div className="container dashboard-header__inner">
         <a className="dashboard-brand" href={toAppHref(brandPath)} aria-label="Codefolio dashboard">
           <DashboardCodeMark />
@@ -176,16 +177,18 @@ export function DashboardHeader({
           <a className="dashboard-header__avatar" href={toAppHref('/profile')} aria-label="Profile">
             <img src={profile?.image || '/me.png'} alt={profile?.name || 'Your profile'} />
           </a>
-          {onChatClick ? (
-            <button className={chatButtonClassName} type="button" onClick={onChatClick}>
-              <PlusIcon />
-              <span>{chatLabel}</span>
-            </button>
-          ) : (
-            <a className={chatButtonClassName} href={toAppHref(chatHref)}>
-              <PlusIcon />
-              <span>{chatLabel}</span>
-            </a>
+          {!chatActive && (
+            onChatClick ? (
+              <button className={chatButtonClassName} type="button" onClick={onChatClick}>
+                <PlusIcon />
+                <span>{chatLabel}</span>
+              </button>
+            ) : (
+              <a className={chatButtonClassName} href={toAppHref(chatHref)}>
+                <PlusIcon />
+                <span>{chatLabel}</span>
+              </a>
+            )
           )}
         </div>
       </div>

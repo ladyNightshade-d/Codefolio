@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardPage, { DashboardHeader } from './DashboardPage.jsx';
 import ChatWithAiPage from './ChatWithAiPage.jsx';
 import InfoPage from './InfoPage.jsx';
@@ -2256,7 +2256,7 @@ function App() {
   }
 
   const isDashboardPage = pathname === '/dashboard';
-  const isDashboardChatPage = pathname === '/dashboard/chat';
+  const isDashboardChatPage = pathname.includes('/chat') || window.location.hash.includes('/chat');
   const isLoginPage = pathname === '/login';
   const isSignupPage = pathname === '/signup';
   const isTermsPage = pathname === '/terms';
@@ -2460,7 +2460,7 @@ function App() {
         )}
       </main>
 
-      {!isProfileAreaPage ? <Footer /> : null}
+      {!isProfileAreaPage && !isDashboardChatPage && !window.location.hash.includes('chat') ? <Footer /> : null}
     </div>
   );
 }
