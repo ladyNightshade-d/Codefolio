@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import DashboardPage, { DashboardHeader } from './DashboardPage.jsx';
 import ChatWithAiPage from './ChatWithAiPage.jsx';
 import InfoPage from './InfoPage.jsx';
@@ -54,32 +54,32 @@ const trustLogos = [
 const legacyFeaturedProjects = [
   {
     title: 'Obsidian Core',
-    stack: 'React ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Rust ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ WASM',
+    stack: 'React ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Rust ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ WASM',
     image: '/1.png',
     imageAlt: 'Obsidian Core preview',
     tag: 'NEW',
   },
   {
     title: 'Lumina Dev',
-    stack: 'Next.js ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ three.js',
+    stack: 'Next.js ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ three.js',
     image: '/2.png',
     imageAlt: 'Lumina Dev preview',
   },
   {
     title: 'alow State',
-    stack: 'Node ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ GraphÃƒÆ’Ã‚Â© L',
+    stack: 'Node ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ GraphÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© L',
     image: '/3.png',
     imageAlt: 'alow State preview',
   },
   {
     title: 'Synthetix',
-    stack: 'Svelte ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Tailwind',
+    stack: 'Svelte ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Tailwind',
     image: '/4.png',
     imageAlt: 'Synthetix preview',
   },
   {
     title: 'Monolith Infrastructure',
-    stack: 'Go ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Kubernetes ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Docker',
+    stack: 'Go ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Kubernetes ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Docker',
     image: '/5.png',
     imageAlt: 'Monolith Infrastructure preview',
     tag: 'FEATURED',
@@ -87,37 +87,37 @@ const legacyFeaturedProjects = [
   },
   {
     title: 'Vortex AI',
-    stack: 'Python ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ PyTorch',
+    stack: 'Python ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ PyTorch',
     image: '/6.png',
     imageAlt: 'Vortex AI preview',
   },
   {
     title: 'Sonic Labs',
-    stack: 'Vue ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ WebAudio',
+    stack: 'Vue ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ WebAudio',
     image: '/7.png',
     imageAlt: 'Sonic Labs preview',
   },
   {
     title: 'Aether Stream',
-    stack: 'D3.js ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ WebGL',
+    stack: 'D3.js ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ WebGL',
     image: '/8.png',
     imageAlt: 'Aether Stream preview',
   },
   {
     title: 'Minimal Script',
-    stack: 'TypeScript ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Bun',
+    stack: 'TypeScript ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Bun',
     image: '/9.png',
     imageAlt: 'Minimal Script preview',
   },
   {
     title: 'Metric Pro',
-    stack: 'Grafana ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Prometheus',
+    stack: 'Grafana ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Prometheus',
     image: '/10.png',
     imageAlt: 'Metric Pro preview',
   },
   {
     title: 'Atomic UI',
-    stack: 'React ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Storybook',
+    stack: 'React ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Storybook',
     image: '/11.png',
     imageAlt: 'Atomic UI preview',
   },
@@ -2281,7 +2281,9 @@ function App() {
   const profileSettingsMatch = pathname.match(/^\/profile\/settings(?:\/([^/]+))?$/);
   const profileSettingsSection = profileSettingsMatch?.[1] || 'general';
   const isProfileSettingsPage = Boolean(profileSettingsMatch);
-  const isProfileUploadPage = pathname === '/profile/upload';
+  const isProfileUploadEntryPage = pathname === '/profile/upload';
+  const isProfileUploadDetailsPage = pathname === '/profile/upload/details';
+  const isProfileUploadPage = isProfileUploadEntryPage || isProfileUploadDetailsPage;
   const isProfileAreaPage = isProfilePage || isProfileSettingsPage;
   const projectMatch = pathname.match(/^\/projects\/([^/]+)$/);
   const activeProject = projectMatch ? getProjectRecord(projects, projectMatch[1]) : null;
@@ -2339,6 +2341,7 @@ function App() {
       <div className="page-shell page-shell--upload">
         <main>
           <UploadShotPage
+            mode={isProfileUploadDetailsPage ? 'details' : 'upload'}
             toAppHref={toAppHref}
             contributorDirectory={contributorDirectory}
             onSaveDraft={handleSaveDraft}
@@ -2463,6 +2466,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

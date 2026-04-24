@@ -5,11 +5,13 @@
 
 .page-shell--upload main {
   min-height: 100vh;
+  background: #ffffff;
 }
 
 .upload-shot-page {
   min-height: 100vh;
-  padding: 34px 0 96px;
+  padding: 36px 0 92px;
+  background: #ffffff;
   color: #101114;
 }
 
@@ -31,13 +33,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
 }
 
 .upload-shot-page__topbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
 }
 
 .upload-shot-page__secondary-button,
@@ -56,30 +58,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 0 22px;
+  min-height: 48px;
+  padding: 0 30px;
   border-radius: 999px;
-  font-size: 0.98rem;
-  font-weight: 600;
+  font-size: 0.94rem;
+  font-weight: 500;
   letter-spacing: -0.02em;
   text-decoration: none;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
+    border-color 180ms ease,
     opacity 180ms ease;
 }
 
 .upload-shot-page__secondary-button {
-  border: 1px solid #dfE4ec;
+  border: 1px solid #d5d8de;
   background: #ffffff;
-  color: #181a1f;
+  color: #1a1d21;
 }
 
 .upload-shot-page__primary-button {
   border: 1px solid transparent;
-  background: #121224;
+  background: #050505;
   color: #ffffff;
-  box-shadow: 0 12px 28px rgba(18, 18, 36, 0.14);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.12);
 }
 
 .upload-shot-page__primary-button:disabled,
@@ -94,6 +97,10 @@
   transform: translateY(-1px);
 }
 
+.upload-shot-page__secondary-button:not(:disabled):hover {
+  border-color: #c7cbd2;
+}
+
 .upload-shot-page__button-icon {
   width: 18px;
   height: 18px;
@@ -105,22 +112,24 @@
 }
 
 .upload-shot-page__hero {
-  padding-top: 98px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-top: 116px;
   text-align: center;
 }
 
 .upload-shot-page__title {
   margin: 0;
-  font-size: clamp(2.9rem, 6vw, 5rem);
-  line-height: 0.96;
+  font-size: clamp(2.5rem, 4.8vw, 3.7rem);
+  line-height: 0.98;
   font-weight: 700;
-  letter-spacing: -0.08em;
+  letter-spacing: -0.07em;
 }
 
 .upload-shot-page__copy {
   margin: 18px 0 0;
-  color: #6a707a;
-  font-size: 1rem;
+  color: #70757d;
+  font-size: 0.94rem;
   line-height: 1.5;
   letter-spacing: -0.02em;
 }
@@ -131,12 +140,12 @@
 
 .upload-shot-page__dropzone {
   width: min(100%, 770px);
-  margin: 36px auto 0;
-  padding: 24px;
-  border: 1px solid #f0f1f4;
-  border-radius: 32px;
+  margin: 38px auto 0;
+  padding: 18px;
+  border: 1px solid #f3f4f6;
+  border-radius: 34px;
   background: #ffffff;
-  box-shadow: 0 18px 42px rgba(17, 24, 39, 0.04);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.03);
   cursor: pointer;
   transition:
     transform 180ms ease,
@@ -146,9 +155,9 @@
 
 .upload-shot-page__dropzone:hover,
 .upload-shot-page__dropzone--active {
-  transform: translateY(-2px);
-  border-color: #dce1ea;
-  box-shadow: 0 24px 50px rgba(17, 24, 39, 0.07);
+  transform: translateY(-1px);
+  border-color: #e6e8ec;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.05);
 }
 
 .upload-shot-page__dropzone-surface {
@@ -156,10 +165,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 420px;
-  padding: 48px 28px;
-  border-radius: 32px;
-  background: #f7f7f8;
+  min-height: 418px;
+  padding: 52px 28px;
+  border-radius: 36px;
+  background: #fafafa;
   text-align: center;
 }
 
@@ -167,11 +176,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 76px;
+  width: 74px;
+  height: 74px;
   border-radius: 999px;
   background: #ffffff;
-  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 .upload-shot-page__drop-icon,
@@ -183,31 +192,31 @@
 }
 
 .upload-shot-page__drop-icon {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   color: #17181c;
-  stroke-width: 1.9;
+  stroke-width: 1.8;
 }
 
 .upload-shot-page__drop-title {
-  margin: 24px 0 0;
-  font-size: clamp(1.45rem, 2.3vw, 2rem);
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.05em;
+  margin: 26px 0 0;
+  font-size: clamp(1.02rem, 1.7vw, 1.3rem);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.04em;
 }
 
 .upload-shot-page__drop-copy,
 .upload-shot-page__drop-meta,
 .upload-shot-page__support-copy {
-  color: #6a707a;
-  font-size: 0.96rem;
+  color: #72767d;
+  font-size: 0.9rem;
   line-height: 1.55;
 }
 
 .upload-shot-page__drop-copy,
 .upload-shot-page__drop-meta {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
 }
 
 .upload-shot-page__browse-button,
@@ -216,7 +225,7 @@
   border: none;
   background: transparent;
   color: #111214;
-  font-size: 0.96rem;
+  font-size: 0.9rem;
   font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -224,15 +233,15 @@
 
 .upload-shot-page__drop-preview {
   display: grid;
-  gap: 22px;
-  width: min(100%, 520px);
+  gap: 20px;
+  width: min(100%, 430px);
 }
 
 .upload-shot-page__drop-preview-frame {
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: 26px;
   background: #ffffff;
-  box-shadow: 0 16px 32px rgba(17, 24, 39, 0.08);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
 }
 
 .upload-shot-page__drop-preview-image {
@@ -242,11 +251,21 @@
   object-fit: cover;
 }
 
+.upload-shot-page__drop-preview-copy {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.upload-shot-page__drop-preview-copy .upload-shot-page__drop-title {
+  margin-top: 0;
+}
+
 .upload-shot-page__validation {
-  width: min(100%, 680px);
+  width: min(100%, 700px);
   margin: 16px auto 0;
   color: #c21d1d;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   line-height: 1.5;
   text-align: center;
 }
@@ -254,23 +273,23 @@
 .upload-shot-page__rules {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 40px;
-  width: min(100%, 700px);
-  margin: 28px auto 0;
+  gap: 16px 52px;
+  width: min(100%, 690px);
+  margin: 32px auto 0;
 }
 
 .upload-shot-page__rule {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #5f6671;
-  font-size: 0.95rem;
+  color: #676c74;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
 .upload-shot-page__rule-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
   color: #22c55e;
   stroke-width: 1.8;
@@ -347,7 +366,7 @@
   background: #ffffff;
   color: #111214;
   font: inherit;
-  font-size: 1rem;
+  font-size: 0.94rem;
   line-height: 1.5;
   letter-spacing: -0.02em;
 }
@@ -485,7 +504,7 @@
   border-radius: 999px;
   background: #ffffff;
   color: #24272f;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   line-height: 1;
 }
 
@@ -619,7 +638,7 @@
   align-items: center;
   gap: 10px;
   color: #2a2d33;
-  font-size: 0.98rem;
+  font-size: 0.9rem;
 }
 
 .upload-shot-page__radio-option input {
@@ -629,6 +648,106 @@
   accent-color: #121224;
 }
 
+@media (min-width: 721px) {
+  .upload-shot-page:not(.upload-shot-page--details) {
+    padding: 24px 0 16px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__inner {
+    min-height: calc(100vh - 38px);
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__topbar {
+    gap: 16px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__topbar-actions {
+    gap: 14px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__secondary-button,
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__primary-button {
+    min-height: 44px;
+    padding: 0 26px;
+    font-size: 0.9rem;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__hero {
+    max-width: 940px;
+    padding-top: 44px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__title {
+    font-size: clamp(2.35rem, 4.7vw, 3.45rem);
+    line-height: 1;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__copy {
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__dropzone {
+    width: min(100%, 930px);
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 32px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__dropzone-surface {
+    min-height: clamp(294px, 39vh, 364px);
+    padding: 34px 26px;
+    border-radius: 34px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-icon-badge {
+    width: 66px;
+    height: 66px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-title {
+    margin-top: 18px;
+    font-size: clamp(1.08rem, 1.7vw, 1.26rem);
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-copy,
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-meta,
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__support-copy,
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__browse-button {
+    font-size: 0.88rem;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-preview {
+    width: min(100%, 390px);
+    gap: 18px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__validation {
+    margin-top: 10px;
+    font-size: 0.82rem;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__rules {
+    width: min(100%, 760px);
+    margin-top: 14px;
+    gap: 12px 38px;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__rule {
+    gap: 10px;
+    font-size: 0.88rem;
+  }
+
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__rule-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
 @media (max-width: 920px) {
   .upload-shot-page__rules,
   .upload-shot-page__field-grid,
@@ -665,21 +784,21 @@
   }
 
   .upload-shot-page__hero {
-    padding-top: 66px;
+    padding-top: 72px;
   }
 
   .upload-shot-page__title {
-    font-size: clamp(2.1rem, 10vw, 3.2rem);
+    font-size: clamp(2.15rem, 9vw, 2.9rem);
   }
 
   .upload-shot-page__dropzone {
-    padding: 16px;
+    padding: 14px;
   }
 
   .upload-shot-page__dropzone-surface {
-    min-height: 300px;
+    min-height: 320px;
     padding: 36px 18px;
-    border-radius: 24px;
+    border-radius: 28px;
   }
 
   .upload-shot-page__details-title {
