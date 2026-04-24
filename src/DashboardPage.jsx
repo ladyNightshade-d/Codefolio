@@ -117,21 +117,36 @@ function PlusIcon() {
   );
 }
 
-export function DashboardHeader({ toAppHref, activePath = '/dashboard' }) {
+export function DashboardHeader({
+  toAppHref,
+  activePath = '/dashboard',
+  profile,
+  navigationItems = dashboardNavigationItems,
+  brandPath = '/dashboard',
+  chatHref = '/dashboard/chat',
+  chatLabel = 'Chat with AI',
+  chatActive = false,
+  onChatClick,
+}) {
+  const chatButtonClassName = `dashboard-header__chat-button ${
+    chatActive ? 'dashboard-header__chat-button--active' : ''
+  }`;
+
   return (
     <header className="dashboard-header">
       <div className="container dashboard-header__inner">
-        <a className="dashboard-brand" href={toAppHref('/dashboard')} aria-label="Codefolio dashboard">
+        <a className="dashboard-brand" href={toAppHref(brandPath)} aria-label="Codefolio dashboard">
           <DashboardCodeMark />
           <span>Codefolio</span>
         </a>
 
         <nav className="dashboard-nav" aria-label="Dashboard">
-          {dashboardNavigationItems.map((item) => (
+          {navigationItems.map((item) => (
             <a
               key={item.label}
               className={`dashboard-nav__link ${activePath === item.href ? 'dashboard-nav__link--active' : ''}`}
               href={toAppHref(item.href)}
+              aria-current={activePath === item.href ? 'page' : undefined}
             >
               {item.label}
             </a>
@@ -159,22 +174,29 @@ export function DashboardHeader({ toAppHref, activePath = '/dashboard' }) {
             <span className="dashboard-header__notification-dot" />
           </button>
           <a className="dashboard-header__avatar" href={toAppHref('/profile')} aria-label="Profile">
-            <img src="/me.png" alt="Your profile" />
+            <img src={profile?.image || '/me.png'} alt={profile?.name || 'Your profile'} />
           </a>
-          <button className="dashboard-header__chat-button" type="button">
-            <PlusIcon />
-            <span>Start Chat</span>
-          </button>
+          {onChatClick ? (
+            <button className={chatButtonClassName} type="button" onClick={onChatClick}>
+              <PlusIcon />
+              <span>{chatLabel}</span>
+            </button>
+          ) : (
+            <a className={chatButtonClassName} href={toAppHref(chatHref)}>
+              <PlusIcon />
+              <span>{chatLabel}</span>
+            </a>
+          )}
         </div>
       </div>
     </header>
   );
 }
 
-function DashboardPage({ projects, toAppHref }) {
+function DashboardPage({ projects, toAppHref, profile }) {
   return (
     <>
-      <DashboardHeader toAppHref={toAppHref} activePath="/dashboard" />
+      <DashboardHeader toAppHref={toAppHref} activePath="/dashboard" profile={profile} />
 
       <main className="dashboard-main">
         <section className="dashboard-hero">
@@ -208,11 +230,11 @@ function DashboardPage({ projects, toAppHref }) {
             </div>
 
             <div className="dashboard-ai-banner">
-              <button className="dashboard-ai-banner__button" type="button">
+              <a className="dashboard-ai-banner__button" href={toAppHref('/dashboard/chat')}>
                 <SparklesIcon />
                 <span>Start a Conversation</span>
                 <span className="dashboard-ai-banner__badge">NEW</span>
-              </button>
+              </a>
               <p className="dashboard-ai-banner__copy">
                 Tell us what you need and help you to find it easily using AI.
               </p>
@@ -305,3 +327,4 @@ function DashboardPage({ projects, toAppHref }) {
 }
 
 export default DashboardPage;
+

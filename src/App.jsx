@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import DashboardPage, { DashboardHeader } from './DashboardPage.jsx';
+import ChatWithAiPage from './ChatWithAiPage.jsx';
+import InfoPage from './InfoPage.jsx';
 import LoginPage from './LoginPage.jsx';
 import ProfilePage from './ProfilePage.jsx';
+import PublicProfilePage from './PublicProfilePage.jsx';
+import SettingsPage from './SettingsPage.jsx';
+import SignupPage from './SignupPage.jsx';
 import UploadShotPage from './UploadShotPage.jsx';
 
 function getCurrentPath() {
@@ -35,10 +40,9 @@ const navigationItems = [
 
 const homeFilterItems = ['Popular', 'Recent', 'Followed'];
 const footerItems = [
-  { label: 'Work', href: '/' },
-  { label: 'Projects', href: '/#community' },
-  { label: 'Archive', href: '/' },
-  { label: 'Stack', href: '/' },
+  { label: 'Terms of Use', href: '/terms' },
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 const trustLogos = [
@@ -120,14 +124,34 @@ const legacyFeaturedProjects = [
 ];
 
 const projectTeamProfiles = {
-  elena: { name: 'Elena Rostova', image: '/contributors/elena-rostova.jpg' },
-  marcus: { name: 'Marcus Chen', image: '/contributors/marcus-chen.jpg' },
-  sarah: { name: 'Sarah Jenkins', image: '/contributors/sarah-jenkins.jpg' },
-  david: { name: 'David Kim', image: '/contributors/david-kim.jpg' },
-  priya: { name: 'Priya Patel', image: '/contributors/priya-patel.jpg' },
-  james: { name: 'James Wilson', image: '/contributors/james-wilson.jpg' },
-  nina: { name: 'Nina Gonzalez', image: '/contributors/nina-gonzalez.jpg' },
-  alex: { name: 'Alex Thorne', image: '/contributors/alex-thorne.jpg' },
+  elena: {
+    slug: 'elena-rostova',
+    name: 'Elena Rostova',
+    image: '/contributors/elena-rostova.jpg',
+  },
+  marcus: {
+    slug: 'marcus-chen',
+    name: 'Marcus Chen',
+    image: '/contributors/marcus-chen.jpg',
+  },
+  sarah: {
+    slug: 'sarah-jenkins',
+    name: 'Sarah Jenkins',
+    image: '/contributors/sarah-jenkins.jpg',
+  },
+  david: { slug: 'david-kim', name: 'David Kim', image: '/contributors/david-kim.jpg' },
+  priya: { slug: 'priya-patel', name: 'Priya Patel', image: '/contributors/priya-patel.jpg' },
+  james: {
+    slug: 'james-wilson',
+    name: 'James Wilson',
+    image: '/contributors/james-wilson.jpg',
+  },
+  nina: {
+    slug: 'nina-gonzalez',
+    name: 'Nina Gonzalez',
+    image: '/contributors/nina-gonzalez.jpg',
+  },
+  alex: { slug: 'alex-thorne', name: 'Alex Thorne', image: '/contributors/alex-thorne.jpg' },
 };
 
 const projectGalleryFallbackPool = [
@@ -686,62 +710,416 @@ const contributorFilterOptions = [
 
 const contributors = [
   {
+    slug: 'elena-rostova',
     name: 'Elena Rostova',
     role: 'Full-Stack Engineer',
     specialties: ['web'],
     skills: ['React', 'Node.js', 'AWS'],
+    location: 'Kigali',
+    headline: 'designs resilient product systems with polished, performance-first interfaces.',
     image: '/contributors/elena-rostova.jpg',
+    contact: {
+      github: 'https://github.com/elena-rostova',
+      linkedin: 'https://www.linkedin.com/in/elena-rostova/',
+      email: 'elena.rostova@codefolio.dev',
+    },
   },
   {
+    slug: 'marcus-chen',
     name: 'Marcus Chen',
     role: 'AI Researcher',
     specialties: ['ai'],
     skills: ['Python', 'PyTorch', 'C++'],
+    location: 'Nairobi',
+    headline: 'builds applied AI tooling that turns research workflows into usable products.',
     image: '/contributors/marcus-chen.jpg',
+    contact: {
+      github: 'https://github.com/marcus-chen',
+      linkedin: 'https://www.linkedin.com/in/marcus-chen/',
+      email: 'marcus.chen@codefolio.dev',
+    },
   },
   {
+    slug: 'sarah-jenkins',
     name: 'Sarah Jenkins',
     role: 'UI/UX Designer',
     specialties: ['web'],
     skills: ['Figma', 'Framer', 'CSS'],
+    location: 'Kigali',
+    headline: 'translates complex engineering work into crisp, human-centered product experiences.',
     image: '/contributors/sarah-jenkins.jpg',
+    contact: {
+      github: 'https://github.com/sarah-jenkins',
+      linkedin: 'https://www.linkedin.com/in/sarah-jenkins/',
+      email: 'sarah.jenkins@codefolio.dev',
+    },
   },
   {
+    slug: 'david-kim',
     name: 'David Kim',
     role: 'Mobile Architect',
     specialties: ['mobile'],
     skills: ['Swift', 'Kotlin', 'GraphQL'],
+    location: 'Lagos',
+    headline: 'ships cross-platform mobile systems with strong reliability and smooth data sync.',
     image: '/contributors/david-kim.jpg',
+    contact: {
+      github: 'https://github.com/david-kim',
+      linkedin: 'https://www.linkedin.com/in/david-kim/',
+      email: 'david.kim@codefolio.dev',
+    },
   },
   {
+    slug: 'priya-patel',
     name: 'Priya Patel',
     role: 'Data Engineer',
     specialties: ['ai'],
     skills: ['Spark', 'Kafka', 'SQL'],
+    location: 'Bengaluru',
+    headline: 'turns noisy pipelines into dependable data products and measurable insights.',
     image: '/contributors/priya-patel.jpg',
+    contact: {
+      github: 'https://github.com/priya-patel',
+      linkedin: 'https://www.linkedin.com/in/priya-patel/',
+      email: 'priya.patel@codefolio.dev',
+    },
   },
   {
+    slug: 'james-wilson',
     name: 'James Wilson',
     role: 'DevOps Lead',
     specialties: ['web', 'ai'],
     skills: ['Kubernetes', 'Terraform', 'CI/CD'],
+    location: 'Cape Town',
+    headline: 'keeps delivery fast and reliable with hardened cloud platforms and smart automation.',
     image: '/contributors/james-wilson.jpg',
+    contact: {
+      github: 'https://github.com/james-wilson',
+      linkedin: 'https://www.linkedin.com/in/james-wilson/',
+      email: 'james.wilson@codefolio.dev',
+    },
   },
   {
+    slug: 'nina-gonzalez',
     name: 'Nina Gonzalez',
     role: 'Frontend Specialist',
     specialties: ['web'],
     skills: ['Vue', 'Nuxt', 'Tailwind'],
+    location: 'Kigali',
+    headline: 'crafts ambitious frontend experiences with sharp interaction detail and strong performance.',
     image: '/contributors/nina-gonzalez.jpg',
+    contact: {
+      github: 'https://github.com/nina-gonzalez',
+      linkedin: 'https://www.linkedin.com/in/nina-gonzalez/',
+      email: 'nina.gonzalez@codefolio.dev',
+    },
   },
   {
+    slug: 'alex-thorne',
     name: 'Alex Thorne',
     role: 'Security Engineer',
     specialties: ['mobile', 'ai'],
     skills: ['Rust', 'Go', 'Cryptography'],
+    location: 'Johannesburg',
+    headline: 'focuses on secure-by-default platforms, identity flows, and systems hardening.',
     image: '/contributors/alex-thorne.jpg',
+    contact: {
+      github: 'https://github.com/alex-thorne',
+      linkedin: 'https://www.linkedin.com/in/alex-thorne/',
+      email: 'alex.thorne@codefolio.dev',
+    },
   },
 ];
+
+const defaultNotificationPreferences = {
+  newProjectComments: true,
+  mentionsInDiscussions: true,
+  projectLikesAndBookmarks: false,
+  cohortUpdates: true,
+  newProjectsInYourStack: false,
+};
+
+const currentUserSeed = {
+  slug: 'manzi-shimwa-yves-seraphin',
+  username: 'manzi-shimwa-yves-seraphin',
+  accountEmail: 'myvesseraphin@gmail.com',
+  name: 'MANZI SHIMWA Yves Seraphin',
+  role: 'Senior Product Engineer',
+  location: 'Kigali, Rwanda',
+  headline: 'builds polished web products grounded in clean systems thinking.',
+  bio: 'Senior Developer specializing in clean architecture and performant web applications. Passionate about design systems and user experience.',
+  image: '/me.png',
+  skills: ['React', 'Node.js', 'Design Systems'],
+  specialties: ['web', 'ai'],
+  contact: {
+    email: 'yves@gmail.com',
+    phone: '+250 78-000-0000',
+    website: 'https://yves.dev',
+    github: '',
+    linkedin: '',
+  },
+  education: [
+    {
+      id: 'education-1',
+      title: 'Rwanda Coding Academy',
+      meta: 'Software Engineering',
+      period: '2021 - Present',
+    },
+  ],
+  notifications: defaultNotificationPreferences,
+};
+
+const currentUserProjectSeeds = [
+  {
+    slug: 'community-loop',
+    title: 'Community Loop',
+    techStack: ['React', 'Node.js', 'PostgreSQL', 'Socket.IO'],
+    summary: 'A collaboration hub that helps RCA builders share progress, recruit teammates, and surface portfolio-ready work.',
+    image: '/17.png',
+    gallery: ['/17.png', '/14.png', '/18.png'],
+    status: 'Live',
+    year: '2026',
+    event: 'RCA Product Studio',
+    problem: [
+      'Student builders needed a single place to showcase progress, discover teammates, and keep project momentum visible across cohorts.',
+      'Existing communication channels were fragmented, so promising projects often disappeared before they could gather feedback or collaborators.',
+    ],
+    solution: [
+      'Community Loop combines project publishing, contributor discovery, and lightweight discussion into one polished workspace for student teams.',
+      'The experience keeps the portfolio layer visible while still feeling collaborative, making it easier to move from idea to shipped work.',
+    ],
+    innovations: [
+      'Portfolio-first project discovery tuned for student work.',
+      'Contributor matching powered by technical interests and availability.',
+      'Feedback loops that connect critiques directly to project milestones.',
+    ],
+    team: [
+      { slug: 'sarah-jenkins', role: 'Product Designer' },
+      { slug: 'marcus-chen', role: 'AI Matching Engineer' },
+    ],
+    visibility: 'published',
+    collections: ['Community Platforms', 'Portfolio Highlights'],
+    tags: ['Community', 'Collaboration', 'Portfolio'],
+    feedbackRequested: true,
+    reviewAverage: 4.8,
+    reviewCount: 28,
+    repositoryUrl: 'https://github.com/codefolio/community-loop',
+    liveDemoUrl: 'https://community-loop.codefolio.app',
+    updatedAt: '2026-04-22',
+  },
+  {
+    slug: 'studio-ops',
+    title: 'Studio Ops',
+    techStack: ['Vite', 'React', 'Express', 'SQLite'],
+    summary: 'An operations dashboard for coordinating coursework deadlines, reviews, and technical project submissions.',
+    image: '/18.png',
+    gallery: ['/18.png', '/21.png', '/22.png'],
+    status: 'Completed',
+    year: '2025',
+    event: 'Capstone Systems Lab',
+    problem: [
+      'Project coordination across review cycles often lived in scattered spreadsheets, messages, and disconnected reminder tools.',
+      'That made it difficult to understand who was blocked, which milestones were at risk, and what needed attention next.',
+    ],
+    solution: [
+      'Studio Ops centralizes project schedules, owner visibility, and review status tracking in a single calm workspace.',
+      'The result is an operational surface that feels structured enough for mentors while still lightweight for student teams.',
+    ],
+    innovations: [
+      'Unified milestone board for course and capstone deliverables.',
+      'Review checkpoints that stay attached to each project record.',
+      'Simple operational summaries for mentors and team leads.',
+    ],
+    team: [
+      { slug: 'james-wilson', role: 'Platform Advisor' },
+      { slug: 'priya-patel', role: 'Data Workflow Engineer' },
+    ],
+    visibility: 'published',
+    collections: ['Systems Thinking'],
+    tags: ['Operations', 'Education', 'Workflow'],
+    feedbackRequested: false,
+    reviewAverage: 4.6,
+    reviewCount: 16,
+    repositoryUrl: 'https://github.com/codefolio/studio-ops',
+    liveDemoUrl: '',
+    updatedAt: '2026-04-18',
+  },
+  {
+    slug: 'mentor-grid',
+    title: 'Mentor Grid',
+    techStack: ['React', 'Supabase', 'Tailwind CSS'],
+    summary: 'A mentor coordination prototype for pairing students with project reviewers and industry support.',
+    image: '/19.png',
+    gallery: ['/19.png', '/20.png'],
+    status: 'In Review',
+    year: '2026',
+    event: 'Independent Exploration',
+    problem: [
+      'Students often struggled to find the right mentor quickly once a project moved beyond informal feedback.',
+      'Without structured matching, review opportunities depended too heavily on timing and personal networks.',
+    ],
+    solution: [
+      'Mentor Grid is exploring a more intentional routing model that pairs projects with mentors based on focus area, availability, and review history.',
+    ],
+    innovations: [
+      'Mentor matching logic shaped around student project stages.',
+      'Reusable review briefs that reduce mentor onboarding friction.',
+    ],
+    team: [{ slug: 'nina-gonzalez', role: 'Frontend Reviewer' }],
+    visibility: 'draft',
+    collections: ['Draft Concepts'],
+    tags: ['Mentorship', 'Review', 'Prototype'],
+    feedbackRequested: true,
+    reviewAverage: 0,
+    reviewCount: 0,
+    repositoryUrl: 'https://github.com/codefolio/mentor-grid',
+    liveDemoUrl: '',
+    updatedAt: '2026-04-21',
+  },
+];
+
+function buildCurrentUserContributor(profile) {
+  return {
+    slug: profile.slug,
+    username: profile.username,
+    name: profile.name,
+    role: profile.role,
+    specialties: profile.specialties || [],
+    skills: profile.skills || [],
+    location: profile.location,
+    headline: profile.headline || '',
+    image: profile.image || '/me.png',
+    contact: {
+      github: profile.contact?.github || '',
+      linkedin: profile.contact?.linkedin || '',
+      email: profile.contact?.email || '',
+    },
+  };
+}
+
+function buildContributorDirectory(currentUserProfile) {
+  return [buildCurrentUserContributor(currentUserProfile), ...contributors].map((contributor) => ({
+    ...contributor,
+    username: contributor.username || contributor.slug,
+  }));
+}
+
+function buildProjectStack(techStack) {
+  return techStack.join(' - ');
+}
+
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function ensureUniqueProjectSlug(projectList, title) {
+  const baseSlug = slugify(title) || 'untitled-project';
+
+  if (!projectList.some((project) => project.slug === baseSlug)) {
+    return baseSlug;
+  }
+
+  let suffix = 2;
+
+  while (projectList.some((project) => project.slug === `${baseSlug}-${suffix}`)) {
+    suffix += 1;
+  }
+
+  return `${baseSlug}-${suffix}`;
+}
+
+function splitProjectCopy(value, fallbackCopy) {
+  const paragraphs = value
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  return paragraphs.length ? paragraphs : [fallbackCopy];
+}
+
+function createTeamMemberFromContributor(contributor, role) {
+  return {
+    slug: contributor.slug,
+    name: contributor.name,
+    image: contributor.image,
+    role,
+  };
+}
+
+function normalizeProjectRecord(project, index = 0) {
+  return {
+    ...project,
+    stack: project.stack || buildProjectStack(project.techStack || []),
+    visibility: project.visibility || 'published',
+    ownerSlug: project.ownerSlug || project.team?.[0]?.slug || '',
+    repositoryUrl:
+      project.repositoryUrl || project.githubUrl || `https://github.com/codefolio/${project.slug}`,
+    liveDemoUrl:
+      project.liveDemoUrl || (project.status === 'Live' ? `https://${project.slug}.codefolio.app` : ''),
+    feedbackRequested: project.feedbackRequested ?? project.status === 'In Review',
+    collections:
+      project.collections ||
+      [project.tag === 'FEATURED' ? 'Featured Work' : 'Studio Projects'],
+    tags: project.tags || project.techStack?.slice(0, 3) || [],
+    reviewAverage:
+      Number.isFinite(project.reviewAverage)
+        ? project.reviewAverage
+        : Number((4.2 + (index % 5) * 0.15).toFixed(1)),
+    reviewCount: Number.isFinite(project.reviewCount) ? project.reviewCount : 12 + index * 4,
+    updatedAt: project.updatedAt || `2026-04-${String(21 - (index % 9)).padStart(2, '0')}`,
+  };
+}
+
+function createSeedProjectRecord(seedProject, ownerContributor) {
+  const resolvedTeam = seedProject.team
+    .map((member) => {
+      const contributor = contributors.find((candidate) => candidate.slug === member.slug);
+
+      return contributor ? createTeamMemberFromContributor(contributor, member.role) : null;
+    })
+    .filter(Boolean);
+
+  return normalizeProjectRecord({
+    slug: seedProject.slug,
+    title: seedProject.title,
+    stack: buildProjectStack(seedProject.techStack),
+    techStack: seedProject.techStack,
+    summary: seedProject.summary,
+    image: seedProject.image,
+    imageAlt: `${seedProject.title} preview`,
+    gallery: seedProject.gallery,
+    status: seedProject.status,
+    cohort: seedProject.year,
+    course: seedProject.event,
+    problem: seedProject.problem,
+    solution: seedProject.solution,
+    innovations: seedProject.innovations,
+    team: [
+      createTeamMemberFromContributor(ownerContributor, ownerContributor.role),
+      ...resolvedTeam,
+    ],
+    visibility: seedProject.visibility,
+    ownerSlug: ownerContributor.slug,
+    collections: seedProject.collections,
+    tags: seedProject.tags,
+    feedbackRequested: seedProject.feedbackRequested,
+    reviewAverage: seedProject.reviewAverage,
+    reviewCount: seedProject.reviewCount,
+    repositoryUrl: seedProject.repositoryUrl,
+    liveDemoUrl: seedProject.liveDemoUrl,
+    updatedAt: seedProject.updatedAt,
+  });
+}
+
+const initialProjectRecords = projectRecords.map((project, index) =>
+  normalizeProjectRecord(project, index)
+);
+const initialCurrentUserProjects = currentUserProjectSeeds.map((project) =>
+  createSeedProjectRecord(project, buildCurrentUserContributor(currentUserSeed))
+);
 
 function getVisibleShowcaseCollections(activePlatform, activeSort) {
   const filteredCollections = showcaseCollections.filter(
@@ -764,18 +1142,150 @@ function getVisibleShowcaseCollections(activePlatform, activeSort) {
   });
 }
 
-function getVisibleContributors(activeContributorFilter) {
+function getVisibleContributors(activeContributorFilter, contributorDirectory) {
   if (activeContributorFilter === 'all') {
-    return contributors;
+    return contributorDirectory;
   }
 
-  return contributors.filter((contributor) =>
+  return contributorDirectory.filter((contributor) =>
     contributor.specialties.includes(activeContributorFilter)
   );
 }
 
-function getProjectRecord(projectSlug) {
-  return projectRecords.find((project) => project.slug === projectSlug) || null;
+function getContributorProfilePath(contributorSlug) {
+  return `/contributors/${contributorSlug}`;
+}
+
+function getContributorRecord(contributorDirectory, contributorSlug) {
+  return contributorDirectory.find((contributor) => contributor.slug === contributorSlug) || null;
+}
+
+function getContributorProjects(projectList, contributorSlug) {
+  return projectList.filter((project) =>
+    project.team.some((member) => member.slug === contributorSlug)
+  );
+}
+
+function getProjectRecord(projectList, projectSlug) {
+  return projectList.find((project) => project.slug === projectSlug) || null;
+}
+
+function createFeaturedProjects(projectList) {
+  return projectList
+    .filter((project) => project.visibility !== 'draft')
+    .map(({ slug, title, stack, image, imageAlt, tag, wide }) => ({
+      slug,
+      title,
+      stack,
+      image,
+      imageAlt,
+      tag,
+      wide,
+    }));
+}
+
+function syncProjectsWithContributor(projectList, contributor) {
+  return projectList.map((project) => ({
+    ...project,
+    team: project.team.map((member) =>
+      member.slug === contributor.slug
+        ? {
+            ...member,
+            name: contributor.name,
+            image: contributor.image,
+          }
+        : member
+    ),
+  }));
+}
+
+function createProjectFromSubmission({
+  submission,
+  visibility,
+  projectList,
+  ownerContributor,
+  contributorDirectory,
+}) {
+  const { files, formData } = submission;
+  const gallery =
+    files.length > 0 ? files.map((file) => URL.createObjectURL(file)) : ['/12.png'];
+  const title = formData.title || (visibility === 'draft' ? 'Untitled Draft' : 'Untitled Project');
+  const slug = ensureUniqueProjectSlug(projectList, title);
+  const seenMembers = new Set();
+  const team = [
+    createTeamMemberFromContributor(ownerContributor, ownerContributor.role),
+    ...formData.teamMembers
+      .map((member) => {
+        const resolvedContributor =
+          (member.slug &&
+            contributorDirectory.find((contributor) => contributor.slug === member.slug)) ||
+          contributorDirectory.find(
+            (contributor) => contributor.name.toLowerCase() === member.name.toLowerCase()
+          ) ||
+          null;
+        const name = member.name || resolvedContributor?.name || '';
+
+        if (!name) {
+          return null;
+        }
+
+        const key = resolvedContributor?.slug || name.toLowerCase();
+
+        if (seenMembers.has(key)) {
+          return null;
+        }
+
+        seenMembers.add(key);
+
+        return {
+          slug: resolvedContributor?.slug || member.slug || '',
+          name,
+          image: member.avatar || resolvedContributor?.image || '/me.png',
+          role: member.role || resolvedContributor?.role || 'Contributor',
+        };
+      })
+      .filter(Boolean),
+  ].filter((member, index, members) =>
+    members.findIndex((candidate) =>
+      candidate.slug ? candidate.slug === member.slug : candidate.name === member.name
+    ) === index
+  );
+
+  return normalizeProjectRecord({
+    slug,
+    title,
+    stack: buildProjectStack(formData.techStack.length ? formData.techStack : ['Concept']),
+    techStack: formData.techStack.length ? formData.techStack : ['Concept'],
+    summary: formData.summary || 'Project summary coming soon.',
+    image: gallery[0],
+    imageAlt: `${title} preview`,
+    gallery,
+    status: formData.status || 'In Review',
+    cohort: formData.year || String(new Date().getFullYear()),
+    course: formData.event || 'Independent Project',
+    problem: splitProjectCopy(
+      formData.problemText,
+      'Problem statement will be added once the project brief is finalized.'
+    ),
+    solution: splitProjectCopy(
+      formData.solutionText,
+      'Solution details will be added once the implementation is ready to share.'
+    ),
+    innovations: formData.innovations.length
+      ? formData.innovations
+      : ['Innovation details coming soon.'],
+    team,
+    visibility,
+    ownerSlug: ownerContributor.slug,
+    repositoryUrl: formData.repositoryUrl,
+    liveDemoUrl: formData.liveDemoUrl,
+    feedbackRequested: formData.feedbackRequested,
+    collections: formData.collections,
+    tags: formData.tags,
+    reviewAverage: 0,
+    reviewCount: 0,
+    updatedAt: new Date().toISOString().slice(0, 10),
+  });
 }
 
 function CodeMark() {
@@ -918,7 +1428,7 @@ function Header({ activePath }) {
           <a className="site-actions__login" href={toAppHref("/login")}>
             Login
           </a>
-          <a className="pill-button pill-button--dark pill-button--small" href="/">
+          <a className="pill-button pill-button--dark pill-button--small" href={toAppHref("/signup")}>
             Sign up
           </a>
         </div>
@@ -932,7 +1442,7 @@ function Footer() {
     <footer className="site-footer" id="footer">
       <div className="container">
         <div className="site-footer__top">
-          <a className="brand brand--footer" href="/">
+          <a className="brand brand--footer" href={toAppHref('/')}>
             <span>Codefolio</span>
           </a>
 
@@ -943,10 +1453,6 @@ function Footer() {
               </a>
             ))}
           </nav>
-
-          <a className="site-footer__github" href="/" aria-label="GitHub">
-            <GithubIcon />
-          </a>
         </div>
 
         <div className="site-footer__bottom">COPYRIGHT 2026 KORVEX - PROJECT MANAGEMENT</div>
@@ -955,7 +1461,7 @@ function Footer() {
   );
 }
 
-function LandingPage() {
+function LandingPage({ projects }) {
   return (
     <>
       <section className="hero-section">
@@ -971,7 +1477,7 @@ function LandingPage() {
           </p>
 
           <div className="hero-actions">
-            <a className="pill-button pill-button--dark" href="/">
+            <a className="pill-button pill-button--dark" href={toAppHref('/signup')}>
               Join for free
             </a>
             <a className="pill-button pill-button--light" href={toAppHref("/showcases")}>
@@ -1014,7 +1520,7 @@ function LandingPage() {
           </div>
 
           <div className="projects-grid">
-            {featuredProjects.map((project) => (
+            {projects.map((project) => (
               <article key={project.title} className="project-card">
                 <a className="project-card__link" href={toAppHref(`/projects/${project.slug}`)}>
                   <img
@@ -1239,9 +1745,16 @@ function CloseIcon() {
   );
 }
 
-function ProjectDetailPage({ project, onClose }) {
+function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug }) {
   const [activeGalleryPage, setActiveGalleryPage] = useState(0);
   const primaryMember = project.team[0] || null;
+  const primaryContributor = primaryMember?.slug ? findContributorBySlug(primaryMember.slug) : null;
+  const primaryContributorProfileHref = primaryMember?.slug
+    ? toAppHref(getContributorProfilePath(primaryMember.slug))
+    : null;
+  const primaryContributorContactHref = primaryContributor?.contact?.email
+    ? `mailto:${primaryContributor.contact.email}`
+    : primaryContributorProfileHref;
   const galleryImages = getProjectGalleryImages(project);
   const galleryPageSize = 2;
   const galleryPageCount = Math.ceil(galleryImages.length / galleryPageSize);
@@ -1292,30 +1805,64 @@ function ProjectDetailPage({ project, onClose }) {
 
           {primaryMember ? (
             <div className="project-detail__author">
-              <div className="project-detail__author-meta">
-                <img
-                  className="project-detail__author-avatar"
-                  src={primaryMember.image}
-                  alt={primaryMember.name}
-                />
-                <div className="project-detail__author-copy">
-                  <p className="project-detail__author-line">
-                    <span className="project-detail__author-name">{primaryMember.name}</span>
-                    <span className="project-detail__author-role">{primaryMember.role}</span>
-                  </p>
+              {primaryContributorProfileHref ? (
+                <a
+                  className="project-detail__author-meta project-detail__author-meta--link"
+                  href={primaryContributorProfileHref}
+                  aria-label={`View ${primaryMember.name}'s public profile`}
+                >
+                  <img
+                    className="project-detail__author-avatar"
+                    src={primaryMember.image}
+                    alt={primaryMember.name}
+                  />
+                  <div className="project-detail__author-copy">
+                    <p className="project-detail__author-line">
+                      <span className="project-detail__author-name">{primaryMember.name}</span>
+                      <span className="project-detail__author-role">{primaryMember.role}</span>
+                    </p>
+                  </div>
+                </a>
+              ) : (
+                <div className="project-detail__author-meta">
+                  <img
+                    className="project-detail__author-avatar"
+                    src={primaryMember.image}
+                    alt={primaryMember.name}
+                  />
+                  <div className="project-detail__author-copy">
+                    <p className="project-detail__author-line">
+                      <span className="project-detail__author-name">{primaryMember.name}</span>
+                      <span className="project-detail__author-role">{primaryMember.role}</span>
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="project-detail__author-actions" aria-label="Project actions">
-                <button className="project-detail__author-icon-button" type="button" aria-label="Save project">
+                <button
+                  className="project-detail__author-icon-button"
+                  type="button"
+                  aria-label="Save project"
+                >
                   <HeartIcon />
                 </button>
-                <button className="project-detail__author-icon-button" type="button" aria-label="Bookmark project">
+                <button
+                  className="project-detail__author-icon-button"
+                  type="button"
+                  aria-label="Bookmark project"
+                >
                   <BookmarkIcon />
                 </button>
-                <button className="project-detail__author-contact" type="button">
-                  Get in touch
-                </button>
+                {primaryContributorContactHref ? (
+                  <a className="project-detail__author-contact" href={primaryContributorContactHref}>
+                    Get in touch
+                  </a>
+                ) : (
+                  <button className="project-detail__author-contact" type="button">
+                    Get in touch
+                  </button>
+                )}
               </div>
             </div>
           ) : null}
@@ -1341,12 +1888,34 @@ function ProjectDetailPage({ project, onClose }) {
           <div className="project-detail__meta-block project-detail__meta-block--align-end">
             <span className="project-detail__eyebrow">Links</span>
             <div className="project-detail__actions">
-              <button className="project-detail__action project-detail__action--light" type="button">
-                GitHub Repository
-              </button>
-              <button className="project-detail__action project-detail__action--dark" type="button">
-                Live Demo
-              </button>
+              {project.repositoryUrl ? (
+                <a
+                  className="project-detail__action project-detail__action--light"
+                  href={project.repositoryUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  GitHub Repository
+                </a>
+              ) : (
+                <button className="project-detail__action project-detail__action--light" type="button">
+                  GitHub Repository
+                </button>
+              )}
+              {project.liveDemoUrl ? (
+                <a
+                  className="project-detail__action project-detail__action--dark"
+                  href={project.liveDemoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Live Demo
+                </a>
+              ) : (
+                <button className="project-detail__action project-detail__action--dark" type="button">
+                  Live Demo
+                </button>
+              )}
             </div>
           </div>
 
@@ -1456,18 +2025,47 @@ function ProjectDetailPage({ project, onClose }) {
           </div>
 
           <div className="project-detail__team-grid">
-            {project.team.map((member) => (
-              <article key={`${project.slug}-${member.name}`} className="project-detail__team-member">
-                <img
-                  className="project-detail__team-avatar"
-                  src={member.image}
-                  alt={member.name}
-                  loading="lazy"
-                />
-                <h3 className="project-detail__team-name">{member.name}</h3>
-                <p className="project-detail__team-role">{member.role}</p>
-              </article>
-            ))}
+            {project.team.map((member) => {
+              const memberProfileHref = member.slug
+                ? toAppHref(getContributorProfilePath(member.slug))
+                : null;
+
+              if (memberProfileHref) {
+                return (
+                  <a
+                    key={`${project.slug}-${member.name}`}
+                    className="project-detail__team-member project-detail__team-member--link"
+                    href={memberProfileHref}
+                    aria-label={`View ${member.name}'s public profile`}
+                  >
+                    <img
+                      className="project-detail__team-avatar"
+                      src={member.image}
+                      alt={member.name}
+                      loading="lazy"
+                    />
+                    <h3 className="project-detail__team-name">{member.name}</h3>
+                    <p className="project-detail__team-role">{member.role}</p>
+                  </a>
+                );
+              }
+
+              return (
+                <article
+                  key={`${project.slug}-${member.name}`}
+                  className="project-detail__team-member"
+                >
+                  <img
+                    className="project-detail__team-avatar"
+                    src={member.image}
+                    alt={member.name}
+                    loading="lazy"
+                  />
+                  <h3 className="project-detail__team-name">{member.name}</h3>
+                  <p className="project-detail__team-role">{member.role}</p>
+                </article>
+              );
+            })}
           </div>
         </section>
       </div>
@@ -1475,9 +2073,9 @@ function ProjectDetailPage({ project, onClose }) {
   );
 }
 
-function ContributorsPage() {
+function ContributorsPage({ toAppHref, contributors }) {
   const [activeContributorFilter, setActiveContributorFilter] = useState('all');
-  const visibleContributors = getVisibleContributors(activeContributorFilter);
+  const visibleContributors = getVisibleContributors(activeContributorFilter, contributors);
 
   return (
     <section className="contributors-page" aria-labelledby="contributors-heading">
@@ -1513,7 +2111,12 @@ function ContributorsPage() {
 
         <div className="contributors-grid">
           {visibleContributors.map((contributor) => (
-            <article key={contributor.name} className="contributor-card">
+            <a
+              key={contributor.slug}
+              className="contributor-card"
+              href={toAppHref(getContributorProfilePath(contributor.slug))}
+              aria-label={`View ${contributor.name}'s public profile`}
+            >
               <img
                 className="contributor-card__portrait"
                 src={contributor.image}
@@ -1529,7 +2132,7 @@ function ContributorsPage() {
                   </span>
                 ))}
               </div>
-            </article>
+            </a>
           ))}
         </div>
       </div>
@@ -1539,6 +2142,9 @@ function ContributorsPage() {
 
 function App() {
   const [pathname, setPathname] = useState(getCurrentPath);
+  const [currentUser, setCurrentUser] = useState(currentUserSeed);
+  const [projects, setProjects] = useState([...initialCurrentUserProjects, ...initialProjectRecords]);
+  const [activeProfileTab, setActiveProfileTab] = useState('work');
 
   useEffect(() => {
     function syncPathname() {
@@ -1555,18 +2161,130 @@ function App() {
     };
   }, []);
 
+  const contributorDirectory = buildContributorDirectory(currentUser);
+  const publishedProjects = projects.filter((project) => project.visibility !== 'draft');
+  const featuredProjectCards = createFeaturedProjects(publishedProjects);
+  const currentUserProjects = projects.filter((project) => project.ownerSlug === currentUser.slug);
+
+  function findContributorBySlug(contributorSlug) {
+    return getContributorRecord(contributorDirectory, contributorSlug);
+  }
+
+  function navigateTo(path) {
+    if (typeof window !== 'undefined') {
+      window.location.hash = path;
+    }
+  }
+
+  function handleSaveGeneral(nextGeneralSettings) {
+    setCurrentUser((currentProfile) => ({
+      ...currentProfile,
+      username: nextGeneralSettings.username || currentProfile.username,
+      accountEmail: nextGeneralSettings.accountEmail || currentProfile.accountEmail,
+    }));
+  }
+
+  function handleSaveProfile(nextProfileData) {
+    const nextProfile = {
+      ...currentUser,
+      ...nextProfileData,
+      contact: {
+        ...currentUser.contact,
+        ...nextProfileData.contact,
+      },
+    };
+
+    setCurrentUser(nextProfile);
+    setProjects((currentProjects) =>
+      syncProjectsWithContributor(currentProjects, buildCurrentUserContributor(nextProfile))
+    );
+  }
+
+  function handleSaveSecurity(nextSecuritySettings) {
+    setCurrentUser((currentProfile) => ({
+      ...currentProfile,
+      security: {
+        ...(currentProfile.security || {}),
+        ...nextSecuritySettings,
+      },
+    }));
+  }
+
+  function handleSaveNotifications(nextNotifications) {
+    setCurrentUser((currentProfile) => ({
+      ...currentProfile,
+      notifications: nextNotifications,
+    }));
+  }
+
+  function handleSaveDraft(submission) {
+    setProjects((currentProjects) => [
+      createProjectFromSubmission({
+        submission,
+        visibility: 'draft',
+        projectList: currentProjects,
+        ownerContributor: buildCurrentUserContributor(currentUser),
+        contributorDirectory,
+      }),
+      ...currentProjects,
+    ]);
+    setActiveProfileTab('drafts');
+    navigateTo('/profile');
+  }
+
+  function handlePublishProject(submission) {
+    setProjects((currentProjects) => [
+      createProjectFromSubmission({
+        submission,
+        visibility: 'published',
+        projectList: currentProjects,
+        ownerContributor: buildCurrentUserContributor(currentUser),
+        contributorDirectory,
+      }),
+      ...currentProjects,
+    ]);
+    setActiveProfileTab('work');
+    navigateTo('/profile');
+  }
+
+  function handleDeleteProject(projectSlug) {
+    setProjects((currentProjects) =>
+      currentProjects.filter(
+        (project) => !(project.ownerSlug === currentUser.slug && project.slug === projectSlug)
+      )
+    );
+  }
+
   const isDashboardPage = pathname === '/dashboard';
+  const isDashboardChatPage = pathname === '/dashboard/chat';
   const isLoginPage = pathname === '/login';
+  const isSignupPage = pathname === '/signup';
+  const isTermsPage = pathname === '/terms';
+  const isPrivacyPage = pathname === '/privacy';
+  const isContactPage = pathname === '/contact';
   const isShowcasesPage = pathname === '/showcases';
   const isDashboardShowcasesPage = pathname === '/dashboard/showcases';
   const isAnyShowcasesPage = isShowcasesPage || isDashboardShowcasesPage;
   const isContributorsPage = pathname === '/contributors';
   const isDashboardContributorsPage = pathname === '/dashboard/contributors';
-  const isAnyContributorsPage = isContributorsPage || isDashboardContributorsPage;
+  const contributorProfileMatch = pathname.match(/^\/contributors\/([^/]+)$/);
+  const activeContributor = contributorProfileMatch
+    ? findContributorBySlug(contributorProfileMatch[1])
+    : null;
+  const activeContributorProjects = activeContributor
+    ? getContributorProjects(publishedProjects, activeContributor.slug)
+    : [];
+  const isContributorProfilePage = Boolean(activeContributor);
+  const isAnyContributorsPage =
+    isContributorsPage || isDashboardContributorsPage || isContributorProfilePage;
   const isProfilePage = pathname === '/profile';
+  const profileSettingsMatch = pathname.match(/^\/profile\/settings(?:\/([^/]+))?$/);
+  const profileSettingsSection = profileSettingsMatch?.[1] || 'general';
+  const isProfileSettingsPage = Boolean(profileSettingsMatch);
   const isProfileUploadPage = pathname === '/profile/upload';
+  const isProfileAreaPage = isProfilePage || isProfileSettingsPage;
   const projectMatch = pathname.match(/^\/projects\/([^/]+)$/);
-  const activeProject = projectMatch ? getProjectRecord(projectMatch[1]) : null;
+  const activeProject = projectMatch ? getProjectRecord(projects, projectMatch[1]) : null;
   const isProjectDetailPage = Boolean(activeProject);
 
   function handleCloseProjectDetail() {
@@ -1585,17 +2303,32 @@ function App() {
   if (isDashboardPage) {
     return (
       <div className="page-shell page-shell--dashboard">
-        <DashboardPage projects={featuredProjects} toAppHref={toAppHref} />
+        <DashboardPage projects={featuredProjectCards} toAppHref={toAppHref} profile={currentUser} />
         <Footer />
       </div>
     );
   }
 
-  if (isLoginPage) {
+  if (isDashboardChatPage) {
+    return (
+      <div className="page-shell page-shell--dashboard">
+        <main>
+          <ChatWithAiPage
+            toAppHref={toAppHref}
+            profile={currentUser}
+            projects={publishedProjects}
+          />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isLoginPage || isSignupPage) {
     return (
       <div className="page-shell page-shell--login">
         <main>
-          <LoginPage />
+          {isLoginPage ? <LoginPage /> : <SignupPage />}
         </main>
       </div>
     );
@@ -1605,7 +2338,12 @@ function App() {
     return (
       <div className="page-shell page-shell--upload">
         <main>
-          <UploadShotPage toAppHref={toAppHref} />
+          <UploadShotPage
+            toAppHref={toAppHref}
+            contributorDirectory={contributorDirectory}
+            onSaveDraft={handleSaveDraft}
+            onPublishProject={handlePublishProject}
+          />
         </main>
       </div>
     );
@@ -1615,14 +2353,20 @@ function App() {
     <div
       className={`page-shell ${isAnyShowcasesPage ? 'page-shell--showcases' : ''} ${
         isAnyContributorsPage ? 'page-shell--contributors' : ''
-      } ${isProfilePage ? 'page-shell--profile' : ''} ${
+      } ${isProfileAreaPage ? 'page-shell--profile' : ''} ${
+        isContributorProfilePage ? 'page-shell--public-profile' : ''
+      } ${
         isProjectDetailPage ? 'page-shell--project-detail' : ''
       }`}
     >
       {!isProjectDetailPage &&
-      (isDashboardShowcasesPage || isDashboardContributorsPage || isProfilePage) ? (
+      (isDashboardShowcasesPage ||
+        isDashboardContributorsPage ||
+        isProfileAreaPage ||
+        isContributorProfilePage) ? (
         <DashboardHeader
           toAppHref={toAppHref}
+          profile={currentUser}
           activePath={
             isDashboardShowcasesPage
               ? '/dashboard/showcases'
@@ -1641,21 +2385,84 @@ function App() {
 
       <main>
         {isProjectDetailPage ? (
-          <ProjectDetailPage project={activeProject} onClose={handleCloseProjectDetail} />
+          <ProjectDetailPage
+            project={activeProject}
+            onClose={handleCloseProjectDetail}
+            toAppHref={toAppHref}
+            findContributorBySlug={findContributorBySlug}
+          />
+        ) : isProfileSettingsPage ? (
+          <SettingsPage
+            toAppHref={toAppHref}
+            section={profileSettingsSection}
+            profile={currentUser}
+            onSaveGeneral={handleSaveGeneral}
+            onSaveProfile={handleSaveProfile}
+            onSaveSecurity={handleSaveSecurity}
+            onSaveNotifications={handleSaveNotifications}
+          />
         ) : isProfilePage ? (
-          <ProfilePage toAppHref={toAppHref} />
+          <ProfilePage
+            toAppHref={toAppHref}
+            profile={currentUser}
+            projects={currentUserProjects}
+            activeTab={activeProfileTab}
+            onTabChange={setActiveProfileTab}
+            onDeleteProject={handleDeleteProject}
+          />
+        ) : isContributorProfilePage ? (
+          <PublicProfilePage
+            contributor={activeContributor}
+            projects={activeContributorProjects}
+            toAppHref={toAppHref}
+          />
         ) : isAnyContributorsPage ? (
-          <ContributorsPage />
+          <ContributorsPage toAppHref={toAppHref} contributors={contributorDirectory} />
         ) : isAnyShowcasesPage ? (
           <ShowcasesPage />
+        ) : isTermsPage ? (
+          <InfoPage
+            eyebrow="Legal"
+            title="Terms of Use"
+            paragraphs={[
+              'Codefolio is intended for showcasing work, discovering contributors, and sharing technical projects responsibly.',
+              'By using the platform, you confirm that the work you publish is yours to share and that external links, screenshots, and contributor information are accurate to the best of your knowledge.',
+              'Project content, portfolio information, and collaboration details should be kept professional, lawful, and respectful of other contributors.',
+            ]}
+            actions={[{ label: 'Create account', href: toAppHref('/signup') }]}
+          />
+        ) : isPrivacyPage ? (
+          <InfoPage
+            eyebrow="Privacy"
+            title="Privacy Policy"
+            paragraphs={[
+              'Codefolio stores account, profile, and project information so contributors can manage their portfolios and collaborate around technical work.',
+              'Public profile details such as your name, location, published projects, and any contact methods you choose to display may be visible to other users.',
+              'Private settings like your account email, draft projects, and unpublished work should remain restricted to your account and authorized platform services.',
+            ]}
+            actions={[{ label: 'Contact us', href: toAppHref('/contact'), variant: 'secondary' }]}
+          />
+        ) : isContactPage ? (
+          <InfoPage
+            eyebrow="Support"
+            title="Contact"
+            paragraphs={[
+              'Questions about Codefolio, project publishing, or contributor profiles can be sent to the platform team.',
+              'Use the contact channel below for support requests, policy questions, or account issues while the backend services are being finalized.',
+            ]}
+            actions={[{ label: 'support@codefolio.dev', href: 'mailto:support@codefolio.dev' }]}
+          />
         ) : (
-          <LandingPage />
+          <LandingPage projects={featuredProjectCards} />
         )}
       </main>
 
-      {!isProfilePage ? <Footer /> : null}
+      {!isProfileAreaPage ? <Footer /> : null}
     </div>
   );
 }
 
 export default App;
+
+
+
