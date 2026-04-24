@@ -284,6 +284,16 @@
   text-underline-offset: 4px;
 }
 
+.upload-shot-page__drop-selection {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.upload-shot-page__drop-selection .upload-shot-page__drop-title {
+  margin: 0;
+}
+
 .upload-shot-page__drop-preview {
   display: grid;
   gap: 20px;
@@ -351,6 +361,7 @@
 .upload-shot-page__details-shell {
   width: min(100%, 850px);
   margin: 0 auto;
+  background: #ffffff;
 }
 
 .upload-shot-page__details-hero {
@@ -391,7 +402,7 @@
 
 .upload-shot-page__field {
   display: grid;
-  gap: 11px;
+  gap: 12px;
 }
 
 .upload-shot-page__field-grid {
@@ -404,7 +415,7 @@
 .upload-shot-page__setting-title {
   margin: 0;
   color: #111111;
-  font-size: 0.96rem;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.04em;
 }
@@ -423,9 +434,9 @@
   background: #ffffff;
   color: #222222;
   font: inherit;
-  font-size: 0.98rem;
+  font-size: 16px;
   line-height: 1.5;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 
 .upload-shot-page__text-input:focus,
@@ -437,12 +448,12 @@
 
 .upload-shot-page__text-input,
 .upload-shot-page__input-shell {
-  min-height: 50px;
+  min-height: 56px;
   border-radius: 999px;
 }
 
 .upload-shot-page__text-input {
-  padding: 0 18px;
+  padding: 0 22px;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
@@ -450,8 +461,8 @@
 
 .upload-shot-page__text-area {
   min-height: 122px;
-  padding: 16px 18px;
-  border-radius: 32px;
+  padding: 16px 22px;
+  border-radius: 24px;
   resize: vertical;
   transition:
     border-color 180ms ease,
@@ -465,9 +476,8 @@
 .upload-shot-page__editor {
   overflow: hidden;
   border: 1px solid #dfddd7;
-  border-radius: 32px;
+  border-radius: 24px;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(17, 17, 17, 0.02);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
@@ -477,9 +487,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 42px;
-  padding: 0 14px;
-  border-bottom: 1px solid #ebe6de;
+  min-height: 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid #efede8;
 }
 
 .upload-shot-page__toolbar-button {
@@ -521,7 +531,7 @@
 
 .upload-shot-page__editor-input {
   min-height: 168px;
-  padding: 14px 16px 20px;
+  padding: 16px 22px 20px;
   border: none;
   resize: vertical;
 }
@@ -530,11 +540,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 50px;
-  padding: 0 16px;
+  min-height: 56px;
+  padding: 0 18px;
   border: 1px solid #dfddd7;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(17, 17, 17, 0.02);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
@@ -549,11 +558,11 @@
 }
 
 .upload-shot-page__input-shell--plain {
-  padding-inline: 18px;
+  padding-inline: 22px;
 }
 
 .upload-shot-page__shell-input {
-  min-height: 48px;
+  min-height: 54px;
   padding: 0;
   border: none;
   background: transparent;
@@ -582,7 +591,6 @@
   border: 1px solid #ddd8cf;
   border-radius: 999px;
   background: #ffffff;
-  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.03);
   color: #24272f;
   font-size: 0.94rem;
   line-height: 1;
@@ -829,9 +837,8 @@
     font-size: 0.88rem;
   }
 
-  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-preview {
-    width: min(100%, 390px);
-    gap: 18px;
+  .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__drop-selection {
+    gap: 16px;
   }
 
   .upload-shot-page:not(.upload-shot-page--details) .upload-shot-page__validation {

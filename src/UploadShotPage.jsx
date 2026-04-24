@@ -4,11 +4,12 @@ import './upload-shot.css';
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 const PENDING_UPLOAD_KEY = 'codefolio.pending-upload-shot';
 let allowUploadDetailsEntry = false;
+let pendingUploadEntry = null;
 const acceptedImageTypes = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']);
 const uploadRules = [
-  'High resolution images (png, jpg, gif)',
-  'Animated gifs',
-  'Videos (mp4)',
+  'High resolution images (png, jpg, gif, webp)',
+  'Upload one or multiple images per project',
+  'Up to 10MB per image',
   'Only upload media you own the rights to',
 ];
 const suggestedTags = ['Climate', 'Environment', 'Wastes'];
@@ -84,40 +85,48 @@ function hasUploadDetailsEntry() {
 }
 
 function readPendingUpload() {
+  if (pendingUploadEntry?.files?.length) return pendingUploadEntry;
   if (typeof window === 'undefined') return null;
+
   try {
     const raw = window.sessionStorage.getItem(PENDING_UPLOAD_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const legacyFile = pendingUploadDataToFile(parsed);
+    if (!legacyFile) return null;
+    pendingUploadEntry = {
+      files: [legacyFile],
+      previewUrl: parsed.dataUrl || '',
+    };
+    return pendingUploadEntry;
   } catch {
     return null;
   }
 }
 
 function clearPendingUpload() {
+  if (pendingUploadEntry?.previewUrl?.startsWith('blob:') && typeof window !== 'undefined') {
+    window.URL.revokeObjectURL(pendingUploadEntry.previewUrl);
+  }
+  pendingUploadEntry = null;
   if (typeof window !== 'undefined') {
     window.sessionStorage.removeItem(PENDING_UPLOAD_KEY);
   }
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-    reader.onerror = () => reject(new Error('Could not read file.'));
-    reader.readAsDataURL(file);
-  });
+function persistPendingUpload(files) {
+  clearPendingUpload();
+  const nextFiles = Array.from(files).filter(Boolean);
+  if (!nextFiles.length) return null;
+  const previewUrl = typeof window !== 'undefined' ? window.URL.createObjectURL(nextFiles[0]) : '';
+  pendingUploadEntry = {
+    files: nextFiles,
+    previewUrl,
+  };
+  return pendingUploadEntry;
 }
 
-async function persistPendingUpload(file) {
-  const dataUrl = await fileToDataUrl(file);
-  const payload = { name: file.name, type: file.type, size: file.size, lastModified: file.lastModified, dataUrl };
-  if (typeof window !== 'undefined') {
-    window.sessionStorage.setItem(PENDING_UPLOAD_KEY, JSON.stringify(payload));
-  }
-  return payload;
-}
-
-function pendingUploadToFile(pendingUpload) {
+function pendingUploadDataToFile(pendingUpload) {
   if (!pendingUpload?.dataUrl) return null;
   const [, mime = pendingUpload.type || 'application/octet-stream'] = pendingUpload.dataUrl.match(/^data:(.*?);base64,/) || [];
   const base64 = pendingUpload.dataUrl.split(',')[1] || '';
@@ -130,6 +139,24 @@ function pendingUploadToFile(pendingUpload) {
     type: mime,
     lastModified: pendingUpload.lastModified || Date.now(),
   });
+}
+
+function getPendingUploadFiles(pendingUpload) {
+  if (Array.isArray(pendingUpload?.files)) {
+    return pendingUpload.files.filter(Boolean);
+  }
+  const legacyFile = pendingUploadDataToFile(pendingUpload);
+  return legacyFile ? [legacyFile] : [];
+}
+
+function getPendingUploadPreviewUrl(pendingUpload) {
+  if (typeof pendingUpload?.previewUrl === 'string' && pendingUpload.previewUrl) {
+    return pendingUpload.previewUrl;
+  }
+  if (typeof pendingUpload?.dataUrl === 'string' && pendingUpload.dataUrl) {
+    return pendingUpload.dataUrl;
+  }
+  return '';
 }
 
 function ImageIcon() {
@@ -169,22 +196,22 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   const fileInputRef = useRef(null);
   const solutionInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [validationMessage, setValidationMessage] = useState('');
   const [techStackInput, setTechStackInput] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [contributorInput, setContributorInput] = useState('');
   const [formState, setFormState] = useState(() => createInitialFormState());
-  const [pendingUpload] = useState(() => (isDetailsMode ? readPendingUpload() : null));
+  const pendingUpload = isDetailsMode ? readPendingUpload() : null;
   const [isRouting, setIsRouting] = useState(false);
   const canOpenDetails = !isDetailsMode || hasUploadDetailsEntry();
 
   const profileHref = typeof toAppHref === 'function' ? toAppHref('/profile') : '/profile';
   const acceptedFileList = Array.from(acceptedImageTypes).join(',');
-  const previewUrl = useMemo(() => {
-    if (isDetailsMode) return pendingUpload?.dataUrl || '';
-    return selectedFile ? URL.createObjectURL(selectedFile) : '';
-  }, [isDetailsMode, pendingUpload, selectedFile]);
+  const pendingFiles = useMemo(() => getPendingUploadFiles(pendingUpload), [pendingUpload]);
+  const previewUrl = useMemo(() => getPendingUploadPreviewUrl(pendingUpload), [pendingUpload]);
+  const primaryPendingFile = pendingFiles[0] || null;
+  const selectedImageCount = selectedFiles.length;
   const contributorSuggestions = useMemo(() => {
     const query = normalizeValue(contributorInput);
     if (!query) return [];
@@ -197,19 +224,17 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   useEffect(() => {
     if (isDetailsMode) return;
     clearUploadDetailsEntry();
+    clearPendingUpload();
+    setIsRouting(false);
   }, [isDetailsMode]);
 
   useEffect(() => {
     if (!isDetailsMode) return;
-    if (pendingUpload && canOpenDetails) return;
+    if (pendingFiles.length && canOpenDetails) return;
     clearUploadDetailsEntry();
     clearPendingUpload();
     navigateToHash('/profile/upload');
-  }, [canOpenDetails, isDetailsMode, pendingUpload]);
-
-  useEffect(() => () => {
-    if (!isDetailsMode && previewUrl) URL.revokeObjectURL(previewUrl);
-  }, [isDetailsMode, previewUrl]);
+  }, [canOpenDetails, isDetailsMode, pendingFiles.length]);
 
   function updateFormField(field, value) {
     setFormState((currentState) => ({ ...currentState, [field]: value }));
@@ -220,16 +245,22 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   }
 
   function handleFileSelection(fileList) {
-    const nextFile = Array.from(fileList).find((file) => acceptedImageTypes.has(file.type));
-    if (!nextFile) {
-      setValidationMessage('Please choose a PNG, JPG, GIF, or WebP image.');
+    const nextFiles = Array.from(fileList).filter(Boolean);
+    if (!nextFiles.length) return;
+
+    const invalidFile = nextFiles.find((file) => !acceptedImageTypes.has(file.type));
+    if (invalidFile) {
+      setValidationMessage('Please choose only PNG, JPG, GIF, or WebP images.');
       return;
     }
-    if (nextFile.size > MAX_UPLOAD_SIZE) {
-      setValidationMessage('Please choose an image smaller than 10MB.');
+
+    const oversizedFile = nextFiles.find((file) => file.size > MAX_UPLOAD_SIZE);
+    if (oversizedFile) {
+      setValidationMessage('Each image must be smaller than 10MB.');
       return;
     }
-    setSelectedFile(nextFile);
+
+    setSelectedFiles(nextFiles);
     setValidationMessage('');
   }
 
@@ -321,51 +352,53 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     });
   }
 
-  async function handleContinue() {
-    if (!selectedFile || isRouting) return;
+  function handleContinue() {
+    if (!selectedImageCount || isRouting) return;
     setIsRouting(true);
 
     try {
-      await persistPendingUpload(selectedFile);
+      const nextPendingUpload = persistPendingUpload(selectedFiles);
+      if (!nextPendingUpload) throw new Error('No files selected');
       grantUploadDetailsEntry();
-      navigateToHash('/profile/upload/details');
+      window.setTimeout(() => {
+        navigateToHash('/profile/upload/details');
+      }, 0);
     } catch {
       clearUploadDetailsEntry();
+      clearPendingUpload();
       setValidationMessage('Could not prepare your upload. Please try again.');
       setIsRouting(false);
     }
   }
 
   function handleUploadDraft() {
-    if (!selectedFile) return;
+    if (!selectedImageCount) return;
     clearUploadDetailsEntry();
     clearPendingUpload();
-    onSaveDraft?.(buildSubmission([selectedFile], formState));
+    onSaveDraft?.(buildSubmission(selectedFiles, formState));
   }
 
   function handleDetailsDraft() {
-    const file = pendingUploadToFile(pendingUpload);
-    if (!file) {
+    if (!pendingFiles.length) {
       clearUploadDetailsEntry();
       navigateToHash('/profile/upload');
       return;
     }
     clearUploadDetailsEntry();
     clearPendingUpload();
-    onSaveDraft?.(buildSubmission([file], formState));
+    onSaveDraft?.(buildSubmission(pendingFiles, formState));
   }
 
   function handlePublish(event) {
     event.preventDefault();
-    const file = pendingUploadToFile(pendingUpload);
-    if (!file) {
+    if (!pendingFiles.length) {
       clearUploadDetailsEntry();
       navigateToHash('/profile/upload');
       return;
     }
     clearUploadDetailsEntry();
     clearPendingUpload();
-    onPublishProject?.(buildSubmission([file], formState));
+    onPublishProject?.(buildSubmission(pendingFiles, formState));
   }
 
   if (!isDetailsMode) {
@@ -375,31 +408,27 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
           <div className="upload-shot-page__topbar">
             <a className="upload-shot-page__secondary-button" href={profileHref}>Cancel</a>
             <div className="upload-shot-page__topbar-actions">
-              <button className="upload-shot-page__secondary-button" type="button" onClick={handleUploadDraft} disabled={!selectedFile}>Save as Draft</button>
-              <button className="upload-shot-page__primary-button" type="button" onClick={handleContinue} disabled={!selectedFile || isRouting}><span>Continue</span><ArrowRightIcon /></button>
+              <button className="upload-shot-page__secondary-button" type="button" onClick={handleUploadDraft} disabled={!selectedImageCount}>Save as Draft</button>
+              <button className="upload-shot-page__primary-button" type="button" onClick={handleContinue} disabled={!selectedImageCount || isRouting}><span>Continue</span><ArrowRightIcon /></button>
             </div>
           </div>
           <header className="upload-shot-page__hero">
             <h1 className="upload-shot-page__title" id="upload-shot-heading">What have you been working on?</h1>
-            <p className="upload-shot-page__copy">Share your latest project, prototype, or exploration.</p>
           </header>
-          <input ref={fileInputRef} className="upload-shot-page__input" type="file" accept={acceptedFileList} onChange={(event) => handleFileSelection(event.target.files || [])} />
-          <div className={`upload-shot-page__dropzone ${isDragging ? 'upload-shot-page__dropzone--active' : ''}`} role="button" tabIndex={0} onClick={openFilePicker} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openFilePicker(); } }} onDragEnter={(event) => { handleDragEvent(event); setIsDragging(true); }} onDragOver={handleDragEvent} onDragLeave={(event) => { handleDragEvent(event); setIsDragging(false); }} onDrop={handleDrop} aria-label="Upload a project image">
+          <input ref={fileInputRef} className="upload-shot-page__input" type="file" accept={acceptedFileList} multiple onChange={(event) => handleFileSelection(event.target.files || [])} />
+          <div className={`upload-shot-page__dropzone ${isDragging ? 'upload-shot-page__dropzone--active' : ''}`} role="button" tabIndex={0} onClick={openFilePicker} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openFilePicker(); } }} onDragEnter={(event) => { handleDragEvent(event); setIsDragging(true); }} onDragOver={handleDragEvent} onDragLeave={(event) => { handleDragEvent(event); setIsDragging(false); }} onDrop={handleDrop} aria-label="Upload project images">
             <div className="upload-shot-page__dropzone-surface">
-              {selectedFile ? (
-                <div className="upload-shot-page__drop-preview">
-                  <div className="upload-shot-page__drop-preview-frame"><img className="upload-shot-page__drop-preview-image" src={previewUrl} alt={selectedFile.name} /></div>
-                  <div className="upload-shot-page__drop-preview-copy">
-                    <p className="upload-shot-page__drop-title">{selectedFile.name}</p>
-                    <p className="upload-shot-page__drop-copy">Your shot is ready. Continue to add the project details before publishing.</p>
-                    <button className="upload-shot-page__browse-button" type="button" onClick={(event) => { event.stopPropagation(); openFilePicker(); }}>Browse again</button>
-                  </div>
+              {selectedImageCount ? (
+                <div className="upload-shot-page__drop-selection">
+                  <div className="upload-shot-page__drop-icon-badge" aria-hidden="true"><ImageIcon /></div>
+                  <p className="upload-shot-page__drop-title">{selectedImageCount} image{selectedImageCount === 1 ? '' : 's'} selected</p>
+                  <button className="upload-shot-page__browse-button" type="button" onClick={(event) => { event.stopPropagation(); openFilePicker(); }}>Browse again</button>
                 </div>
               ) : (
                 <>
                   <div className="upload-shot-page__drop-icon-badge" aria-hidden="true"><ImageIcon /></div>
-                  <p className="upload-shot-page__drop-title">Drag and drop an image, or Browse</p>
-                  <p className="upload-shot-page__drop-meta">1600x1200 or higher recommended. Max 10MB.</p>
+                  <p className="upload-shot-page__drop-title">Drag and drop images, or Browse</p>
+                  <p className="upload-shot-page__drop-meta">1600x1200 or higher recommended. Max 10MB each.</p>
                 </>
               )}
             </div>
@@ -411,7 +440,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     );
   }
 
-  if (!pendingUpload) {
+  if (!pendingFiles.length) {
     return null;
   }
 
@@ -475,7 +504,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
               <div className="upload-shot-page__final-grid">
                 <div className="upload-shot-page__thumbnail-column">
                   <span className="upload-shot-page__field-label">Thumbnail preview</span>
-                  <div className="upload-shot-page__thumbnail-card"><img className="upload-shot-page__thumbnail-image" src={previewUrl} alt={pendingUpload.name} /></div>
+                  <div className="upload-shot-page__thumbnail-card">{previewUrl ? <img className="upload-shot-page__thumbnail-image" src={previewUrl} alt={primaryPendingFile?.name || 'Selected project image'} /> : <div className="upload-shot-page__thumbnail-empty">Thumbnail unavailable</div>}</div>
                   <button className="upload-shot-page__thumbnail-action" type="button" onClick={() => { clearUploadDetailsEntry(); clearPendingUpload(); navigateToHash('/profile/upload'); }}>Crop/Select thumbnail</button>
                 </div>
                 <div className="upload-shot-page__final-settings">
@@ -498,4 +527,3 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
 }
 
 export default UploadShotPage;
-
