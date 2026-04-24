@@ -35,6 +35,11 @@ body {
   color: #151515;
 }
 
+/* Force hide footer on Chat Page */
+body:has(.chat-ai-page) .site-footer {
+  display: none !important;
+}
+
 button,
 a {
   color: inherit;

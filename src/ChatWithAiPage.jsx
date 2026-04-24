@@ -59,6 +59,8 @@ function NewChatIcon() {
   );
 }
 
+
+
 function MicIcon() {
   return (
     <svg
@@ -145,6 +147,19 @@ function ChatWithAiPage({ toAppHref, profile }) {
 
   useEffect(() => {
     composerInputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    // Force hide global footer if it exists
+    const globalFooter = document.querySelector('.site-footer');
+    if (globalFooter) {
+       globalFooter.style.display = 'none';
+    }
+    return () => {
+       if (globalFooter) {
+          globalFooter.style.display = 'block';
+       }
+    };
   }, []);
 
   function handleSubmit(event) {
@@ -263,9 +278,6 @@ function ChatWithAiPage({ toAppHref, profile }) {
                         <LightbulbIcon />
                         <CopilotBrandIcon />
                     </div>
-                    <button className="chat-ai-page__action-btn" type="button">
-                      <MicIcon />
-                    </button>
                   </div>
                 </div>
               </form>
@@ -284,13 +296,6 @@ function ChatWithAiPage({ toAppHref, profile }) {
               ))}
             </div>
 
-            <footer className="chat-ai-page__disclaimer">
-              <p>
-                Copilot is an AI and may make mistakes. Your{' '}
-                <a href="#">conversation activity</a>, which includes content you share, now helps train AI.{' '}
-                <a href="#">Opt out</a>.
-              </p>
-            </footer>
           </div>
         ) : (
           <div className="chat-ai-page__conversation">

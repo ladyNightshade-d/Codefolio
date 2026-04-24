@@ -13,7 +13,7 @@
 /* Sidebar Toggle */
 .chat-ai-sidebar-toggle {
   position: fixed;
-  top: 24px;
+  top: 40px;
   left: 24px;
   z-index: 150;
   width: 40px;

@@ -2321,7 +2321,6 @@ function App() {
             projects={publishedProjects}
           />
         </main>
-        <Footer />
       </div>
     );
   }
