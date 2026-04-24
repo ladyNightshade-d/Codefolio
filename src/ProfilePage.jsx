@@ -8,7 +8,6 @@ const profileTabs = [
   { id: 'recent', label: 'Recent' },
   { id: 'collections', label: 'Collections' },
   { id: 'liked', label: 'Liked Shots' },
-  { id: 'about', label: 'About' },
 ];
 
 function LocationPinIcon() {
@@ -626,10 +625,6 @@ function ProfilePage({
       });
     }
 
-    if (activeTab === 'about') {
-      return renderAboutSection();
-    }
-
     return publishedProjects.length
       ? renderProjectGrid(publishedProjects)
       : renderEmptyState({
@@ -718,3 +713,4 @@ function ProfilePage({
 }
 
 export default ProfilePage;
+
