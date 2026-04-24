@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './upload-shot.css';
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
@@ -158,6 +158,10 @@ function ExternalLinkIcon() {
 
 function UsersIcon() {
   return <svg aria-hidden="true" className="upload-shot-page__field-icon" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="7" r="2.2" /><path d="M3.8 14.2c.5-2 2-3 4-3s3.5 1 4 3" /><circle cx="14.4" cy="8" r="1.7" /><path d="M12.6 13.8c.3-1.4 1.3-2.2 2.8-2.2 1 0 1.8.3 2.4.8" /></svg>;
+}
+
+function ListBulletsIcon() {
+  return <svg aria-hidden="true" className="upload-shot-page__toolbar-icon" viewBox="0 0 20 20" fill="none"><circle cx="4.25" cy="5.25" r="1.1" /><circle cx="4.25" cy="10" r="1.1" /><circle cx="4.25" cy="14.75" r="1.1" /><path d="M8 5.25h7.75" /><path d="M8 10h7.75" /><path d="M8 14.75h7.75" /></svg>;
 }
 
 function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [], onSaveDraft, onPublishProject }) {
@@ -417,7 +421,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
         <div className="upload-shot-page__topbar upload-shot-page__topbar--details">
           <a className="upload-shot-page__secondary-button" href={profileHref} onClick={() => { clearUploadDetailsEntry(); clearPendingUpload(); }}>Cancel</a>
           <div className="upload-shot-page__topbar-actions">
-            <button className="upload-shot-page__secondary-button" type="button" onClick={handleDetailsDraft}>Save as draft</button>
+            <button className="upload-shot-page__secondary-button upload-shot-page__secondary-button--soft" type="button" onClick={handleDetailsDraft}>Save as draft</button>
             <button className="upload-shot-page__primary-button upload-shot-page__primary-button--publish" type="submit" form="upload-shot-details-form">Publish Project</button>
           </div>
         </div>
@@ -426,18 +430,18 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
           <form id="upload-shot-details-form" className="upload-shot-page__details-form" onSubmit={handlePublish}>
             <section className="upload-shot-page__details-section">
               <h2 className="upload-shot-page__section-title">Core Details</h2>
-              <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Project Title</span><input className="upload-shot-page__text-input" type="text" value={formState.title} onChange={(event) => updateFormField('title', event.target.value)} placeholder="e.g. Acme Financial Dashboard" /></label>
-              <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Tagline</span><input className="upload-shot-page__text-input" type="text" value={formState.summary} onChange={(event) => updateFormField('summary', event.target.value)} placeholder="A one-sentence summary of what this is." /></label>
-              <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Problem Statement</span><textarea className="upload-shot-page__text-area upload-shot-page__text-area--problem" value={formState.problemText} onChange={(event) => updateFormField('problemText', event.target.value)} placeholder="What specific problem does this project solve?" /></label>
+              <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Project Title</span><input className="upload-shot-page__text-input" type="text" value={formState.title} onChange={(event) => updateFormField('title', event.target.value)} /></label>
+              <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Tagline</span><input className="upload-shot-page__text-input" type="text" value={formState.summary} onChange={(event) => updateFormField('summary', event.target.value)} /></label>
+              <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Problem Statement</span><textarea className="upload-shot-page__text-area upload-shot-page__text-area--problem" value={formState.problemText} onChange={(event) => updateFormField('problemText', event.target.value)} /></label>
               <div className="upload-shot-page__field">
                 <span className="upload-shot-page__field-label">Solution / Key Features</span>
                 <div className="upload-shot-page__editor">
                   <div className="upload-shot-page__editor-toolbar">
                     <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bold" onClick={() => applySolutionFormat('bold')}>B</button>
                     <button className="upload-shot-page__toolbar-button upload-shot-page__toolbar-button--italic" type="button" aria-label="Italic" onClick={() => applySolutionFormat('italic')}>I</button>
-                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bullet list" onClick={() => applySolutionFormat('list')}>List</button>
+                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bullet list" onClick={() => applySolutionFormat('list')}><ListBulletsIcon /></button>
                   </div>
-                  <textarea ref={solutionInputRef} className="upload-shot-page__editor-input" value={formState.solutionText} onChange={(event) => updateFormField('solutionText', event.target.value)} placeholder="Detail your solution and its key features here..." />
+                  <textarea ref={solutionInputRef} className="upload-shot-page__editor-input" aria-label="Solution and key features" value={formState.solutionText} onChange={(event) => updateFormField('solutionText', event.target.value)} />
                 </div>
               </div>
             </section>
@@ -446,11 +450,11 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
               <div className="upload-shot-page__field">
                 <span className="upload-shot-page__field-label">Tech Stack</span>
                 {formState.techStack.length ? <div className="upload-shot-page__token-row upload-shot-page__token-row--stack">{formState.techStack.map((item) => <span key={item} className="upload-shot-page__token"><span>{item}</span><button className="upload-shot-page__token-remove" type="button" aria-label={`Remove ${item}`} onClick={() => removeToken('techStack', item)}>x</button></span>)}</div> : null}
-                <div className="upload-shot-page__input-shell"><SearchIcon /><input className="upload-shot-page__shell-input" type="text" value={techStackInput} onChange={(event) => setTechStackInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addToken('techStack', techStackInput); setTechStackInput(''); } }} onBlur={() => { addToken('techStack', techStackInput); setTechStackInput(''); }} placeholder="Search or type to add technology..." /></div>
+                <div className="upload-shot-page__input-shell"><SearchIcon /><input className="upload-shot-page__shell-input" type="text" aria-label="Add tech stack" autoComplete="off" value={techStackInput} onChange={(event) => setTechStackInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addToken('techStack', techStackInput); setTechStackInput(''); } }} onBlur={() => { addToken('techStack', techStackInput); setTechStackInput(''); }} /></div>
               </div>
               <div className="upload-shot-page__field-grid upload-shot-page__field-grid--links">
-                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Repository Link</span><div className="upload-shot-page__input-shell"><LinkIcon /><input className="upload-shot-page__shell-input" type="url" value={formState.repositoryUrl} onChange={(event) => updateFormField('repositoryUrl', event.target.value)} placeholder="https://github.com/..." /></div></label>
-                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Live Demo URL</span><div className="upload-shot-page__input-shell"><ExternalLinkIcon /><input className="upload-shot-page__shell-input" type="url" value={formState.liveDemoUrl} onChange={(event) => updateFormField('liveDemoUrl', event.target.value)} placeholder="https://..." /></div></label>
+                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Repository Link</span><div className="upload-shot-page__input-shell"><LinkIcon /><input className="upload-shot-page__shell-input" type="url" autoComplete="off" value={formState.repositoryUrl} onChange={(event) => updateFormField('repositoryUrl', event.target.value)} /></div></label>
+                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Live Demo URL</span><div className="upload-shot-page__input-shell"><ExternalLinkIcon /><input className="upload-shot-page__shell-input" type="url" autoComplete="off" value={formState.liveDemoUrl} onChange={(event) => updateFormField('liveDemoUrl', event.target.value)} /></div></label>
               </div>
             </section>
             <section className="upload-shot-page__details-section">
@@ -458,12 +462,12 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
               <div className="upload-shot-page__field">
                 <span className="upload-shot-page__field-label">Contributors</span>
                 {formState.teamMembers.length ? <div className="upload-shot-page__token-row">{formState.teamMembers.map((member) => <span key={member.slug || member.name} className="upload-shot-page__token"><span>{member.name}</span><button className="upload-shot-page__token-remove" type="button" aria-label={`Remove ${member.name}`} onClick={() => removeContributor(member)}>x</button></span>)}</div> : null}
-                <div className="upload-shot-page__input-shell"><UsersIcon /><input className="upload-shot-page__shell-input" type="text" value={contributorInput} onChange={(event) => setContributorInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addContributor(contributorInput); setContributorInput(''); } }} placeholder="Search by name or username..." /></div>
+                <div className="upload-shot-page__input-shell"><UsersIcon /><input className="upload-shot-page__shell-input" type="text" aria-label="Add contributors" autoComplete="off" value={contributorInput} onChange={(event) => setContributorInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addContributor(contributorInput); setContributorInput(''); } }} /></div>
                 {contributorSuggestions.length ? <div className="upload-shot-page__suggestion-list" aria-label="Contributor suggestions">{contributorSuggestions.map((contributor) => <button key={contributor.slug} className="upload-shot-page__suggestion-button" type="button" onClick={() => { addContributor(contributor.name); setContributorInput(''); }}><span>{contributor.name}</span><span>@{contributor.username || contributor.slug}</span></button>)}</div> : null}
               </div>
               <div className="upload-shot-page__field-grid upload-shot-page__field-grid--meta">
-                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Year</span><input className="upload-shot-page__text-input" type="text" value={formState.year} onChange={(event) => updateFormField('year', event.target.value)} placeholder="e.g. 2023" /></label>
-                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Event</span><input className="upload-shot-page__text-input" type="text" value={formState.event} onChange={(event) => updateFormField('event', event.target.value)} placeholder="e.g. RCA Hackathon" /></label>
+                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Year</span><input className="upload-shot-page__text-input" type="text" inputMode="numeric" value={formState.year} onChange={(event) => updateFormField('year', event.target.value)} /></label>
+                <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Event</span><input className="upload-shot-page__text-input" type="text" value={formState.event} onChange={(event) => updateFormField('event', event.target.value)} /></label>
               </div>
             </section>
             <section className="upload-shot-page__details-section upload-shot-page__details-section--final">
@@ -478,11 +482,11 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
                   <div className="upload-shot-page__field">
                     <span className="upload-shot-page__field-label">Tags <span className="upload-shot-page__field-helper">(maximum 20)</span></span>
                     {formState.tags.length ? <div className="upload-shot-page__token-row">{formState.tags.map((item) => <span key={item} className="upload-shot-page__token"><span>{item}</span><button className="upload-shot-page__token-remove" type="button" aria-label={`Remove ${item}`} onClick={() => removeToken('tags', item)}>x</button></span>)}</div> : null}
-                    <div className="upload-shot-page__input-shell upload-shot-page__input-shell--plain"><input className="upload-shot-page__shell-input" type="text" value={tagInput} onChange={(event) => setTagInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addToken('tags', tagInput, 20); setTagInput(''); } }} onBlur={() => { addToken('tags', tagInput, 20); setTagInput(''); }} placeholder="Add tags like FinTech, EdTech, etc..." /></div>
+                    <div className="upload-shot-page__input-shell upload-shot-page__input-shell--plain"><input className="upload-shot-page__shell-input" type="text" aria-label="Add tags" autoComplete="off" value={tagInput} onChange={(event) => setTagInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addToken('tags', tagInput, 20); setTagInput(''); } }} onBlur={() => { addToken('tags', tagInput, 20); setTagInput(''); }} /></div>
                     <p className="upload-shot-page__support-copy">Suggested: {suggestedTags.join(', ')}</p>
                   </div>
                   <div className="upload-shot-page__setting-row"><p className="upload-shot-page__setting-title">Looking for feedback</p><button className={`upload-shot-page__toggle ${formState.feedbackRequested ? 'upload-shot-page__toggle--active' : ''}`} type="button" aria-pressed={formState.feedbackRequested} onClick={() => updateFormField('feedbackRequested', !formState.feedbackRequested)}><span className="upload-shot-page__toggle-handle" /></button></div>
-                  <div className="upload-shot-page__setting-block"><p className="upload-shot-page__setting-title">Project Status</p><div className="upload-shot-page__radio-group" role="radiogroup" aria-label="Project status">{projectStatusOptions.map((status) => <label key={status} className="upload-shot-page__radio-option"><input type="radio" name="project-status" checked={formState.status === status} onChange={() => updateFormField('status', status)} /><span>{status}</span></label>)}</div></div>
+                  <div className="upload-shot-page__setting-block"><p className="upload-shot-page__setting-title">Project Status</p><div className="upload-shot-page__radio-group" role="radiogroup" aria-label="Project status">{projectStatusOptions.map((status) => <label key={status} className="upload-shot-page__radio-option"><input type="radio" name="project-status" value={status} checked={formState.status === status} onChange={() => updateFormField('status', status)} /><span>{status}</span></label>)}</div></div>
                 </div>
               </div>
             </section>
