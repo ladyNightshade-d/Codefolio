@@ -189,21 +189,13 @@
   color: #151515;
 }
 
-.dashboard-search {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  width: min(100%, 760px);
-  min-height: 66px;
-  margin-top: 42px;
-  padding: 0 12px 0 20px;
-  border-radius: 999px;
-  background: #f1f0ec;
+  background: #ffffff;
+  border: 1px solid #e7e4dd;
   gap: 12px;
 }
 
 .dashboard-search__input {
-  --autofill-bg: #f1f0ec;
+  --autofill-bg: #ffffff;
   width: 100%;
   border: 0;
   background: transparent;
@@ -228,8 +220,8 @@
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: #1a1a1a;
-  color: #ffffff;
+  background: transparent;
+  color: #1a1a1a;
 }
 
 .dashboard-popular {
