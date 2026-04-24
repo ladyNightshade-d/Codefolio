@@ -5,8 +5,14 @@
 }
 
 :root {
-  color: #151515;
-  background: #ffffff;
+  --color-text-primary: #151515;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-border: #e9ecef;
+  --color-accent: #007bff;
+
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
   font-family: 'Saans', 'Saans TRIAL', 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,8 +37,8 @@ body,
 
 body {
   min-height: 100vh;
-  background: #ffffff;
-  color: #151515;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 button,
@@ -85,21 +91,10 @@ select:autofill {
   box-shadow: 0 0 0 1000px var(--autofill-bg) inset;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .page-shell {
   min-height: 100vh;
   background: #ffffff;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {

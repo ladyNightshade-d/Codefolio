@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import './dashboard.css';
+import SearchAssistant from './SearchAssistant.jsx';
 
 const dashboardNavigationItems = [
   { label: 'Explore', href: '/dashboard' },
@@ -194,6 +196,25 @@ export function DashboardHeader({
 }
 
 function DashboardPage({ projects, toAppHref, profile }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
+
+  function handleSearch() {
+    const nextQuery = searchQuery.trim();
+
+    if (!nextQuery) {
+      return;
+    }
+
+    setSearchQuery(nextQuery);
+    setSearchSubmitted(true);
+  }
+
+  function handleSuggestionClick(suggestion) {
+    setSearchQuery(suggestion);
+    setSearchSubmitted(true);
+  }
+
   return (
     <>
       <DashboardHeader toAppHref={toAppHref} activePath="/dashboard" profile={profile} />
@@ -210,10 +231,26 @@ function DashboardPage({ projects, toAppHref, profile }) {
               <input
                 className="dashboard-search__input"
                 type="search"
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setSearchSubmitted(false);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleSearch();
+                  }
+                }}
                 placeholder="What type of projects are you interested in?"
                 aria-label="Search projects"
               />
-              <button className="dashboard-search__button" type="button" aria-label="Search">
+              <button
+                className="dashboard-search__button"
+                type="button"
+                aria-label="Search"
+                onClick={handleSearch}
+              >
                 <SearchIcon />
               </button>
             </div>
@@ -222,12 +259,26 @@ function DashboardPage({ projects, toAppHref, profile }) {
               <span className="dashboard-popular__label">Popular:</span>
               <div className="dashboard-popular__chips">
                 {dashboardPopularTopics.map((topic) => (
-                  <button key={topic} className="dashboard-popular__chip" type="button">
+                  <button
+                    key={topic}
+                    className="dashboard-popular__chip"
+                    type="button"
+                    onClick={() => handleSuggestionClick(topic)}
+                  >
                     {topic}
                   </button>
                 ))}
               </div>
             </div>
+
+            {searchSubmitted ? (
+              <SearchAssistant
+                query={searchQuery}
+                onExampleClick={handleSuggestionClick}
+                toAppHref={toAppHref}
+                projects={projects}
+              />
+            ) : null}
 
             <div className="dashboard-ai-banner">
               <a className="dashboard-ai-banner__button" href={toAppHref('/dashboard/chat')}>

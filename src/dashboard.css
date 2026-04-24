@@ -1,5 +1,5 @@
 .page-shell--dashboard {
-  background: #ffffff;
+  background: var(--color-bg-primary);
 }
 
 .page-shell--dashboard .site-footer {
@@ -19,8 +19,8 @@
   top: 0;
   z-index: 20;
   backdrop-filter: blur(18px);
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom: 0;
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .dashboard-header__inner {
@@ -39,7 +39,7 @@
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.05em;
-  color: #101010;
+  color: var(--color-text-primary);
 }
 
 .dashboard-brand__icon {
