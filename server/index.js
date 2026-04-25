@@ -162,6 +162,22 @@ app.get('/api/contributors', async (req, res) => {
   res.json(data);
 });
 
+// Showcases Endpoints
+app.get('/api/showcases', async (req, res) => {
+  const { data, error } = await supabase
+    .from('showcases')
+    .select('*, users(name, avatar_url)');
+
+  if (error) {
+    // If table doesn't exist yet, return empty array instead of erroring
+    if (error.code === 'PGRST116' || error.message.includes('relation "showcases" does not exist')) {
+      return res.json([]);
+    }
+    return res.status(500).json({ error: error.message });
+  }
+  res.json(data);
+});
+
 app.get('/api/users/:username', async (req, res) => {
   const { data: user, error: userError } = await supabase
     .from('users')

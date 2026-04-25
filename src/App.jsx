@@ -984,8 +984,8 @@ function buildCurrentUserContributor(profile) {
 }
 
 function buildContributorDirectory(currentUserProfile, allContributors = []) {
-  // Use allContributors from backend if available, otherwise fallback to seed data
-  const baseContributors = allContributors.length > 0 ? allContributors : contributors;
+  // Only use contributors from backend, no fallback to dummy seed data
+  const baseContributors = allContributors;
   
   // Build objects and ensure every one has a slug
   const directory = [
@@ -1128,8 +1128,8 @@ const initialCurrentUserProjects = currentUserProjectSeeds.map((project) =>
   createSeedProjectRecord(project, buildCurrentUserContributor(currentUserSeed))
 );
 
-function getVisibleShowcaseCollections(activePlatform, activeSort) {
-  const filteredCollections = showcaseCollections.filter(
+function getVisibleShowcaseCollections(activePlatform, activeSort, collections = []) {
+  const filteredCollections = collections.filter(
     (collection) => collection.platform === activePlatform
   );
 
@@ -1717,13 +1717,13 @@ function ShowcasePreview({ collection }) {
   );
 }
 
-function ShowcasesPage({ searchTerm = '' }) {
+function ShowcasesPage({ searchTerm = '', collections = [] }) {
   const [activePlatform, setActivePlatform] = useState('mobile');
   const [activeSort, setActiveSort] = useState('featured');
-  const visibleCollections = getVisibleShowcaseCollections(activePlatform, activeSort).filter(c => 
+  const visibleCollections = getVisibleShowcaseCollections(activePlatform, activeSort, collections).filter(c => 
     !searchTerm || 
     c.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.author.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.author && c.author.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -2249,6 +2249,7 @@ function App() {
   });
   const [projects, setProjects] = useState([]);
   const [allContributors, setAllContributors] = useState([]);
+  const [allShowcases, setAllShowcases] = useState([]);
   const [activeProfileTab, setActiveProfileTab] = useState('work');
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -2304,9 +2305,10 @@ function App() {
     // Initial fetch for public projects and contributors
     const fetchPublicData = async () => {
       try {
-        const [projectsRes, contributorsRes] = await Promise.all([
+        const [projectsRes, contributorsRes, showcasesRes] = await Promise.all([
           fetch('http://localhost:5000/api/projects'),
-          fetch('http://localhost:5000/api/contributors')
+          fetch('http://localhost:5000/api/contributors'),
+          fetch('http://localhost:5000/api/showcases')
         ]);
 
         if (projectsRes.ok) {
@@ -2342,6 +2344,19 @@ function App() {
               linkedin: c.linkedin_url
             }
           })));
+        }
+
+        if (showcasesRes.ok) {
+          const dbShowcases = await showcasesRes.json();
+          // Map backend data to frontend structure
+          const mappedShowcases = dbShowcases.map(s => ({
+            ...s,
+            author: s.users?.name || 'Anonymous',
+            image: s.image_url || s.image,
+            avatar: s.avatar_url || s.avatar,
+            fallbackPreview: s.fallback_preview || s.fallbackPreview
+          }));
+          setAllShowcases(mappedShowcases);
         }
       } catch (error) {
         console.error('Fetch error:', error);
@@ -2975,7 +2990,7 @@ function App() {
         ) : isAnyContributorsPage ? (
           <ContributorsPage toAppHref={toAppHref} contributors={filteredContributors} />
         ) : isAnyShowcasesPage ? (
-          <ShowcasesPage searchTerm={searchTerm} />
+          <ShowcasesPage searchTerm={searchTerm} collections={allShowcases} />
         ) : isTermsPage ? (
           <InfoPage
             eyebrow="Legal"
