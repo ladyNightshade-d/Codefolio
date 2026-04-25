@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from './supabaseClient';
 import DashboardPage, { DashboardHeader } from './DashboardPage.jsx';
 import ChatWithAiPage from './ChatWithAiPage.jsx';
 import InfoPage from './InfoPage.jsx';
@@ -8,12 +9,14 @@ import PublicProfilePage from './PublicProfilePage.jsx';
 import SettingsPage from './SettingsPage.jsx';
 import SignupPage from './SignupPage.jsx';
 import UploadShotPage from './UploadShotPage.jsx';
+import AuthPage from './AuthPage.jsx';
 
 function getCurrentPath() {
   if (typeof window === 'undefined') {
     return '/';
   }
 
+  // Support both for backward compatibility during transition
   const hashPath = window.location.hash.startsWith('#/')
     ? window.location.hash.slice(1)
     : '';
@@ -22,15 +25,11 @@ function getCurrentPath() {
 }
 
 function toAppHref(path) {
-  if (path === '/') {
-    return '/#/';
-  }
-
-  if (path.startsWith('/#')) {
-    return path;
-  }
-
-  return `/#${path}`;
+  if (!path) return '/';
+  // If it already has a hash, keep it (legacy)
+  if (path.startsWith('/#')) return path;
+  // Otherwise, return a clean path (no hash)
+  return path.startsWith('/') ? path : `/${path}`;
 }
 const navigationItems = [
   { label: 'Explore', href: '/' },
@@ -176,21 +175,7 @@ function createProjectTeamMember(profileKey, role) {
 
 function getProjectGalleryImages(project) {
   const initialImages = project.gallery?.length ? project.gallery : [project.image];
-  const images = [...new Set(initialImages)];
-  let poolIndex =
-    project.slug.split('').reduce((total, character) => total + character.charCodeAt(0), 0) %
-    projectGalleryFallbackPool.length;
-
-  while (images.length < 4) {
-    const nextImage = projectGalleryFallbackPool[poolIndex % projectGalleryFallbackPool.length];
-
-    if (!images.includes(nextImage)) {
-      images.push(nextImage);
-    }
-
-    poolIndex += 1;
-  }
-
+  const images = [...new Set(initialImages)].filter(Boolean);
   return images;
 }
 
@@ -979,9 +964,10 @@ const currentUserProjectSeeds = [
 ];
 
 function buildCurrentUserContributor(profile) {
+  const slug = profile.slug || profile.username || (profile.name ? slugify(profile.name) : profile.id);
   return {
-    slug: profile.slug,
-    username: profile.username,
+    slug,
+    username: profile.username || slug,
     name: profile.name,
     role: profile.role,
     specialties: profile.specialties || [],
@@ -992,13 +978,33 @@ function buildCurrentUserContributor(profile) {
     contact: {
       github: profile.contact?.github || '',
       linkedin: profile.contact?.linkedin || '',
-      email: profile.contact?.email || '',
+      email: profile.contact?.email || profile.accountEmail || '',
     },
   };
 }
 
-function buildContributorDirectory(currentUserProfile) {
-  return [buildCurrentUserContributor(currentUserProfile), ...contributors].map((contributor) => ({
+function buildContributorDirectory(currentUserProfile, allContributors = []) {
+  // Use allContributors from backend if available, otherwise fallback to seed data
+  const baseContributors = allContributors.length > 0 ? allContributors : contributors;
+  
+  // Build objects and ensure every one has a slug
+  const directory = [
+    buildCurrentUserContributor(currentUserProfile), 
+    ...baseContributors.map(c => ({
+      ...c,
+      slug: c.slug || (c.name ? slugify(c.name) : c.id) || 'unknown'
+    }))
+  ];
+  
+  // Filter out duplicates (by Slug or Email)
+  const uniqueDirectory = directory.filter((c, index, self) => 
+    index === self.findIndex((t) => 
+      (t.slug && c.slug && t.slug === c.slug) || 
+      (t.contact?.email && c.contact?.email && t.contact.email === c.contact.email)
+    )
+  );
+
+  return uniqueDirectory.map((contributor) => ({
     ...contributor,
     username: contributor.username || contributor.slug,
   }));
@@ -1064,6 +1070,7 @@ function normalizeProjectRecord(project, index = 0) {
       project.collections ||
       [project.tag === 'FEATURED' ? 'Featured Work' : 'Studio Projects'],
     tags: project.tags || project.techStack?.slice(0, 3) || [],
+    keyFeatures: project.keyFeatures || [],
     reviewAverage:
       Number.isFinite(project.reviewAverage)
         ? project.reviewAverage
@@ -1208,7 +1215,7 @@ function createProjectFromSubmission({
 }) {
   const { files, formData } = submission;
   const gallery =
-    files.length > 0 ? files.map((file) => URL.createObjectURL(file)) : ['/12.png'];
+    files.length > 0 ? files.map((file) => URL.createObjectURL(file)) : [];
   const title = formData.title || (visibility === 'draft' ? 'Untitled Draft' : 'Untitled Project');
   const slug = ensureUniqueProjectSlug(projectList, title);
   const seenMembers = new Set();
@@ -1274,6 +1281,7 @@ function createProjectFromSubmission({
     innovations: formData.innovations.length
       ? formData.innovations
       : ['Innovation details coming soon.'],
+    keyFeatures: formData.keyFeatures || [],
     team,
     visibility,
     ownerSlug: ownerContributor.slug,
@@ -1288,6 +1296,24 @@ function createProjectFromSubmission({
   });
 }
 
+function SystemBanner({ message, onClose }) {
+  if (!message) return null;
+
+  return (
+    <div className="system-banner">
+      <div className="container system-banner__inner">
+        <p className="system-banner__message">{message}</p>
+        <button className="system-banner__close" onClick={onClose} aria-label="Close banner">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CodeMark() {
   return (
     <svg
@@ -1300,6 +1326,21 @@ function CodeMark() {
       <path d="M6.2 7.1 2.3 12l3.9 4.9" />
       <path d="M13.2 4.1 10 19.9" />
       <path d="m17.8 7.1 3.9 4.9-3.9 4.9" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="dashboard-icon dashboard-icon--search"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="11" cy="11" r="5.4" />
+      <path d="m15.1 15.1 4.3 4.3" />
     </svg>
   );
 }
@@ -1403,25 +1444,43 @@ function CheckCircleIcon() {
   );
 }
 
-function Header({ activePath }) {
+function Header({ activePath, isSearchActive, searchTerm, onSearchChange, onSearchSubmit }) {
   return (
-    <header className="site-header">
+    <header className={`site-header ${isSearchActive ? 'site-header--scrolled' : ''}`}>
       <div className="container site-header__inner">
-        <a className="brand" href="/" aria-label="Codefolio home">
-          <CodeMark />
-          <span>Codefolio</span>
-        </a>
+        <div className="site-header__left">
+          <a className="brand" href="/" aria-label="Codefolio home">
+            <CodeMark />
+            <span>Codefolio</span>
+          </a>
+        </div>
 
         <nav className="site-nav" aria-label="Primary">
-          {navigationItems.map((item) => (
-            <a
-              key={item.label}
-              className={`site-nav__link ${activePath === item.href ? 'site-nav__link--active' : ''}`}
-              href={toAppHref(item.href)}
-            >
-              {item.label}
-            </a>
-          ))}
+          {isSearchActive ? (
+            <form className="site-header__search" onSubmit={onSearchSubmit}>
+              <input
+                className="site-header__search-input"
+                type="search"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={onSearchChange}
+                autoFocus
+              />
+              <button className="site-header__search-submit" type="submit" aria-label="Submit search">
+                <SearchIcon />
+              </button>
+            </form>
+          ) : (
+            navigationItems.map((item) => (
+              <a
+                key={item.label}
+                className={`site-nav__link ${activePath === item.href ? 'site-nav__link--active' : ''}`}
+                href={toAppHref(item.href)}
+              >
+                {item.label}
+              </a>
+            ))
+          )}
         </nav>
 
         <div className="site-actions">
@@ -1443,6 +1502,7 @@ function Footer() {
       <div className="container">
         <div className="site-footer__top">
           <a className="brand brand--footer" href={toAppHref('/')}>
+            <CodeMark />
             <span>Codefolio</span>
           </a>
 
@@ -1455,13 +1515,22 @@ function Footer() {
           </nav>
         </div>
 
-        <div className="site-footer__bottom">COPYRIGHT 2026 KORVEX - PROJECT MANAGEMENT</div>
+        <div className="site-footer__bottom">© 2026 Codefolio</div>
       </div>
     </footer>
   );
 }
 
-function LandingPage({ projects }) {
+function LandingPage({ projects, toAppHref }) {
+  const [activeFilter, setActiveFilter] = useState('All projects');
+
+  const filteredProjects = activeFilter === 'All projects'
+    ? projects
+    : projects.filter(p => 
+        p.techStack?.some(s => s.toLowerCase().includes(activeFilter.toLowerCase())) ||
+        p.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase())) ||
+        (p.collections && p.collections.some(c => c.toLowerCase().includes(activeFilter.toLowerCase())))
+      );
   return (
     <>
       <section className="hero-section">
@@ -1508,11 +1577,12 @@ function LandingPage({ projects }) {
           </h2>
 
           <div className="project-filters" role="tablist" aria-label="Project filters">
-            {homeFilterItems.map((item, index) => (
+            {homeFilterItems.map((item) => (
               <button
                 key={item}
-                className={`project-filters__pill ${index === 0 ? 'project-filters__pill--active' : ''}`}
+                className={`project-filters__pill ${activeFilter === item ? 'project-filters__pill--active' : ''}`}
                 type="button"
+                onClick={() => setActiveFilter(item)}
               >
                 {item}
               </button>
@@ -1520,36 +1590,47 @@ function LandingPage({ projects }) {
           </div>
 
           <div className="projects-grid">
-            {projects.map((project) => (
-              <article key={project.title} className="project-card">
-                <a className="project-card__link" href={toAppHref(`/projects/${project.slug}`)}>
-                  <img
-                    className="project-card__image"
-                    src={project.image}
-                    alt={project.imageAlt}
-                    loading="lazy"
-                  />
+            {filteredProjects.length > 0 ? (
+              filteredProjects.map((project) => (
+                <article key={project.title} className="project-card">
+                  <a 
+                    className="project-card__link" 
+                    href={toAppHref(`/${project.ownerUsername || 'projects'}/${project.slug}`)}
+                  >
+                    <img
+                      className="project-card__image"
+                      src={project.image}
+                      alt={project.imageAlt}
+                      loading="lazy"
+                    />
 
-                  <div className="project-card__content">
-                    <div className="project-card__top">
-                      <h3 className="project-card__title">{project.title}</h3>
-                      {project.tag ? (
-                        <span className="project-card__badge">{project.tag}</span>
-                      ) : null}
+                    <div className="project-card__content">
+                      <div className="project-card__top">
+                        <h3 className="project-card__title">{project.title}</h3>
+                        {project.tag ? (
+                          <span className="project-card__badge">{project.tag}</span>
+                        ) : null}
+                      </div>
+                      <p className="project-card__stack">{project.stack}</p>
                     </div>
-                    <p className="project-card__stack">{project.stack}</p>
-                  </div>
-                </a>
-              </article>
-            ))}
+                  </a>
+                </article>
+              ))
+            ) : (
+              <div className="no-projects-message" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 0', color: '#666' }}>
+                <p>No projects yet in this category.</p>
+              </div>
+            )}
           </div>
 
-          <div className="projects-section__footer">
-            <button className="load-more-button" type="button">
-              <span>Load more projects</span>
-              <ChevronDownIcon />
-            </button>
-          </div>
+          {filteredProjects.length > 8 && (
+            <div className="projects-section__footer">
+              <button className="load-more-button" type="button">
+                <span>Load more</span>
+                <ChevronDownIcon />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1636,10 +1717,14 @@ function ShowcasePreview({ collection }) {
   );
 }
 
-function ShowcasesPage() {
+function ShowcasesPage({ searchTerm = '' }) {
   const [activePlatform, setActivePlatform] = useState('mobile');
   const [activeSort, setActiveSort] = useState('featured');
-  const visibleCollections = getVisibleShowcaseCollections(activePlatform, activeSort);
+  const visibleCollections = getVisibleShowcaseCollections(activePlatform, activeSort).filter(c => 
+    !searchTerm || 
+    c.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    c.author.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <section className="showcases-page" aria-labelledby="showcases-heading">
@@ -1764,7 +1849,7 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
     galleryStartIndex + galleryPageSize
   );
   const hasGalleryControls = galleryPageCount > 1;
-  const projectYear = project.cohort.match(/\d{4}/)?.[0] || project.cohort;
+  const projectYear = project.cohort ? (project.cohort.match(/\d{4}/)?.[0] || project.cohort) : '';
 
   useEffect(() => {
     setActiveGalleryPage(0);
@@ -1968,6 +2053,19 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
                 ))}
               </div>
             </div>
+            {project.keyFeatures && project.keyFeatures.length > 0 && (
+              <div className="project-detail__innovation-card" style={{ marginTop: '24px' }}>
+                <h3 className="project-detail__innovation-title">Key Features</h3>
+                <div className="project-detail__innovation-list">
+                  {project.keyFeatures.map((feature) => (
+                    <div key={feature} className="project-detail__innovation-item">
+                      <CheckCircleIcon />
+                      <p>{feature}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -2025,7 +2123,7 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
           </div>
 
           <div className="project-detail__team-grid">
-            {project.team.map((member) => {
+            {project.team.filter((m, i, s) => s.findIndex(t => t.slug === m.slug || t.name === m.name) === i).map((member) => {
               const memberProfileHref = member.slug
                 ? toAppHref(getContributorProfilePath(member.slug))
                 : null;
@@ -2142,29 +2240,199 @@ function ContributorsPage({ toAppHref, contributors }) {
 
 function App() {
   const [pathname, setPathname] = useState(getCurrentPath);
-  const [currentUser, setCurrentUser] = useState(currentUserSeed);
-  const [projects, setProjects] = useState([...initialCurrentUserProjects, ...initialProjectRecords]);
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('codefolio_user');
+      return savedUser ? JSON.parse(savedUser) : currentUserSeed;
+    }
+    return currentUserSeed;
+  });
+  const [projects, setProjects] = useState([]);
+  const [allContributors, setAllContributors] = useState([]);
   const [activeProfileTab, setActiveProfileTab] = useState('work');
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [notification, setNotification] = useState(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
+
+  const showNotification = (message, duration = 5000) => {
+    setNotification(message);
+    if (duration) {
+      setTimeout(() => setNotification(null), duration);
+    }
+  };
 
   useEffect(() => {
     function syncPathname() {
-      setPathname(getCurrentPath());
+      const newPath = getCurrentPath();
+      console.log('Path synced to:', newPath);
+      setPathname(newPath);
+      setIsSearchActive(false);
+      setSearchTerm('');
     }
+
+    const handleScroll = () => {
+      if (window.scrollY > 80) {
+        setHasScrolled(true);
+      } else {
+        setHasScrolled(false);
+      }
+    };
 
     syncPathname();
     window.addEventListener('hashchange', syncPathname);
     window.addEventListener('popstate', syncPathname);
+    window.addEventListener('scroll', handleScroll);
 
     return () => {
       window.removeEventListener('hashchange', syncPathname);
       window.removeEventListener('popstate', syncPathname);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
-  const contributorDirectory = buildContributorDirectory(currentUser);
-  const publishedProjects = projects.filter((project) => project.visibility !== 'draft');
+  useEffect(() => {
+    // Show a welcome notification if it's the first visit
+    if (pathname === '/' && !sessionStorage.getItem('welcome-shown')) {
+      showNotification('Welcome to Codefolio! Discover and showcase engineering projects.');
+      sessionStorage.setItem('welcome-shown', 'true');
+    }
+
+    // Initial fetch for public projects and contributors
+    const fetchPublicData = async () => {
+      try {
+        const [projectsRes, contributorsRes] = await Promise.all([
+          fetch('http://localhost:5000/api/projects'),
+          fetch('http://localhost:5000/api/contributors')
+        ]);
+
+        if (projectsRes.ok) {
+          const dbProjects = await projectsRes.json();
+          setProjects(dbProjects.map(p => ({
+            ...p,
+            ownerSlug: p.author_id,
+            ownerUsername: p.users?.username,
+            techStack: p.tech_stack,
+            image: p.image_url,
+            gallery: p.gallery,
+            cohort: p.year,
+            course: p.event,
+            problem: p.problem_statements,
+            solution: p.solution_statements,
+            innovations: p.innovations,
+            keyFeatures: p.key_features,
+            repositoryUrl: p.repository_url,
+            liveDemoUrl: p.live_demo_url,
+            team: [{ slug: p.author_id, name: p.users?.name || 'Unknown', image: p.users?.avatar_url, role: 'Lead' }]
+          })));
+        }
+
+        if (contributorsRes.ok) {
+          const dbContributors = await contributorsRes.json();
+          setAllContributors(dbContributors.map(c => ({
+            ...c,
+            slug: c.id, // Using ID as fallback slug for database users
+            image: c.avatar_url,
+            contact: {
+              email: c.email,
+              github: c.github_url,
+              linkedin: c.linkedin_url
+            }
+          })));
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fetchPublicData();
+
+    // Custom Session Initializer
+    if (currentUser && (currentUser.id || currentUser.accountEmail || currentUser.email) && currentUser.id !== currentUserSeed.id) {
+      const fetchUserData = async () => {
+        // 1. Refresh profile
+        let query = supabase.from('users').select('*');
+        
+        if (currentUser.id && currentUser.id !== 'undefined') {
+          query = query.eq('id', currentUser.id);
+        } else if (currentUser.accountEmail || currentUser.email) {
+          query = query.eq('email', currentUser.accountEmail || currentUser.email);
+        } else {
+          return; // Can't fetch without ID or email
+        }
+
+        const { data: profile } = await query.single();
+
+        if (profile) {
+          const mappedUser = {
+            ...currentUser,
+            ...profile,
+            image: profile.avatar_url,
+            contact: {
+              email: profile.contact_email || '',
+              phone: profile.phone_number || '',
+              website: profile.website_url || '',
+              github: profile.github_url || '',
+              linkedin: profile.linkedin_url || '',
+            }
+          };
+          setCurrentUser(mappedUser);
+        }
+
+        // 2. Fetch projects
+        const { data: dbProjects } = await supabase
+          .from('projects')
+          .select('*, users(name, avatar_url)')
+          .or(`visibility.eq.published,author_id.eq.${currentUser.id}`);
+
+        if (dbProjects) {
+          const mappedProjects = dbProjects.map(p => ({
+            ...p,
+            ownerSlug: p.author_id,
+            techStack: p.tech_stack,
+            image: p.image_url,
+            gallery: p.gallery,
+            cohort: p.year,
+            course: p.event,
+            problem: p.problem_statements,
+            solution: p.solution_statements,
+            innovations: p.innovations,
+            keyFeatures: p.key_features,
+            repositoryUrl: p.repository_url,
+            liveDemoUrl: p.live_demo_url,
+            team: [{ slug: p.author_id, name: p.users.name, image: p.users.avatar_url, role: 'Lead' }]
+          }));
+          setProjects(mappedProjects);
+        }
+      };
+
+      fetchUserData();
+    }
+  }, [pathname, currentUser?.id]);
+
+  const contributorDirectory = buildContributorDirectory(currentUser, allContributors);
+  const filteredProjects = isSearchActive
+    ? projects.filter((p) => 
+        p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        p.stack.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : projects;
+  const publishedProjects = filteredProjects.filter((project) => project.visibility !== 'draft');
+
+  const filteredContributors = isSearchActive
+    ? contributorDirectory.filter((c) => 
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.role.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : contributorDirectory;
+
   const featuredProjectCards = createFeaturedProjects(publishedProjects);
-  const currentUserProjects = projects.filter((project) => project.ownerSlug === currentUser.slug);
+  const currentUserProjects = projects.filter((project) => 
+    project.author_id === currentUser.id || project.ownerSlug === currentUser.id || project.ownerSlug === currentUser.slug
+  );
 
   function findContributorBySlug(contributorSlug) {
     return getContributorRecord(contributorDirectory, contributorSlug);
@@ -2172,92 +2440,324 @@ function App() {
 
   function navigateTo(path) {
     if (typeof window !== 'undefined') {
-      window.location.hash = path;
+      window.history.pushState({}, '', toAppHref(path));
+      // Manually trigger a popstate event since pushState doesn't do it
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }
 
-  function handleSaveGeneral(nextGeneralSettings) {
-    setCurrentUser((currentProfile) => ({
-      ...currentProfile,
-      username: nextGeneralSettings.username || currentProfile.username,
-      accountEmail: nextGeneralSettings.accountEmail || currentProfile.accountEmail,
-    }));
+  async function handleSaveGeneral(nextGeneralSettings) {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        username: nextGeneralSettings.username,
+      })
+      .eq('id', currentUser.id);
+
+    if (error) {
+      showNotification('Error updating settings: ' + error.message);
+    } else {
+      showNotification('Settings updated successfully');
+      setCurrentUser((currentProfile) => ({
+        ...currentProfile,
+        username: nextGeneralSettings.username || currentProfile.username,
+      }));
+    }
   }
 
-  function handleSaveProfile(nextProfileData) {
-    const nextProfile = {
-      ...currentUser,
-      ...nextProfileData,
-      contact: {
-        ...currentUser.contact,
-        ...nextProfileData.contact,
-      },
-    };
+  async function handleSaveProfile(nextProfileData) {
+    try {
+      let avatarUrl = nextProfileData.image;
 
-    setCurrentUser(nextProfile);
-    setProjects((currentProjects) =>
-      syncProjectsWithContributor(currentProjects, buildCurrentUserContributor(nextProfile))
-    );
+      if (nextProfileData.avatarFile) {
+        showNotification('Uploading profile picture...');
+        const uploadedUrls = await uploadFiles([nextProfileData.avatarFile], 'avatars');
+        if (uploadedUrls.length > 0) {
+          avatarUrl = uploadedUrls[0];
+        }
+      }
+
+      const { error } = await supabase
+        .from('users')
+        .update({
+          name: nextProfileData.name,
+          role: nextProfileData.role,
+          location: nextProfileData.location,
+          headline: nextProfileData.headline,
+          bio: nextProfileData.bio,
+          skills: nextProfileData.skills,
+          specialties: nextProfileData.specialties,
+          avatar_url: avatarUrl,
+          education: nextProfileData.education,
+          contact_email: nextProfileData.contact.email,
+          phone_number: nextProfileData.contact.phone,
+          website_url: nextProfileData.contact.website,
+          github_url: nextProfileData.contact.github,
+          linkedin_url: nextProfileData.contact.linkedin,
+        })
+        .match(currentUser.id && currentUser.id !== 'undefined' ? { id: currentUser.id } : { email: currentUser.accountEmail || currentUser.email });
+
+      if (error) {
+        showNotification('Error updating profile: ' + error.message);
+      } else {
+        showNotification('Profile updated successfully');
+        const nextProfile = {
+          ...currentUser,
+          ...nextProfileData,
+          image: avatarUrl,
+          contact: {
+            ...currentUser.contact,
+            ...nextProfileData.contact,
+          },
+        };
+
+        setCurrentUser(nextProfile);
+        setProjects((currentProjects) =>
+          syncProjectsWithContributor(currentProjects, buildCurrentUserContributor(nextProfile))
+        );
+      }
+    } catch (err) {
+      showNotification('Failed to save profile: ' + err.message);
+    }
   }
 
   function handleSaveSecurity(nextSecuritySettings) {
-    setCurrentUser((currentProfile) => ({
-      ...currentProfile,
-      security: {
-        ...(currentProfile.security || {}),
-        ...nextSecuritySettings,
-      },
-    }));
+    // Supabase handles password changes via auth.updateUser
+    supabase.auth.updateUser({ password: nextSecuritySettings.password })
+      .then(({ error }) => {
+        if (error) showNotification('Error updating password: ' + error.message);
+        else showNotification('Password updated successfully');
+      });
   }
 
   function handleSaveNotifications(nextNotifications) {
-    setCurrentUser((currentProfile) => ({
-      ...currentProfile,
-      notifications: nextNotifications,
-    }));
+    // Storing notifications preferences in user metadata or a separate column
+    supabase.auth.updateUser({
+      data: { notifications: nextNotifications }
+    }).then(({ error }) => {
+      if (error) showNotification('Error updating notifications: ' + error.message);
+      else {
+        showNotification('Notifications updated successfully');
+        setCurrentUser((currentProfile) => ({
+          ...currentProfile,
+          notifications: nextNotifications,
+        }));
+      }
+    });
   }
 
-  function handleSaveDraft(submission) {
-    setProjects((currentProjects) => [
-      createProjectFromSubmission({
-        submission,
+  async function uploadFiles(files, bucket = 'projects') {
+    if (!files || files.length === 0) return [];
+    
+    // Ensure we have an array of files/strings
+    const fileArray = Array.from(files);
+    
+    const uploadPromises = fileArray.map(async (file) => {
+      // If it's already a public URL or not a file we can upload, return as is
+      if (typeof file === 'string' && (file.startsWith('http') || !file.startsWith('blob:'))) {
+        return file;
+      }
+
+      // If it's a blob URL, we need the original File object. 
+      // But usually we pass the File object directly to this function.
+      if (!(file instanceof File)) {
+        return typeof file === 'string' ? file : null;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `${currentUser.id}/${fileName}`;
+      
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+        
+      if (error) {
+        console.error(`Upload error in bucket "${bucket}":`, error);
+        throw error;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+        
+      return publicUrl;
+    });
+    
+    const results = await Promise.all(uploadPromises);
+    return results.filter(Boolean);
+  }
+
+  async function handleSaveDraft(submission) {
+    try {
+      setIsSavingDraft(true);
+      const { files } = submission;
+      let imageUrls = [];
+      
+      if (files && files.length > 0) {
+        showNotification('Uploading images...');
+        imageUrls = await uploadFiles(files);
+      }
+
+      const projectData = createProjectFromSubmission({
+        submission: {
+          ...submission,
+          // Replace local blob URLs with remote URLs if upload succeeded
+          files: imageUrls.length > 0 ? [] : submission.files
+        },
         visibility: 'draft',
-        projectList: currentProjects,
+        projectList: projects,
         ownerContributor: buildCurrentUserContributor(currentUser),
         contributorDirectory,
-      }),
-      ...currentProjects,
-    ]);
-    setActiveProfileTab('drafts');
-    navigateTo('/profile');
+      });
+
+      // Override images with uploaded URLs and add author_id for local state
+      if (imageUrls.length > 0) {
+        projectData.image = imageUrls[0];
+        projectData.gallery = imageUrls;
+      }
+      projectData.author_id = currentUser.id;
+      projectData.ownerSlug = currentUser.id;
+
+      const { error } = await supabase
+        .from('projects')
+        .insert({
+          title: projectData.title,
+          slug: projectData.slug,
+          summary: projectData.summary,
+          image_url: projectData.image,
+          gallery: projectData.gallery,
+          tech_stack: projectData.techStack,
+          status: projectData.status,
+          year: projectData.cohort,
+          event: projectData.course,
+          problem_statements: projectData.problem,
+          solution_statements: projectData.solution,
+          innovations: projectData.innovations,
+          key_features: projectData.keyFeatures,
+          visibility: 'draft',
+          author_id: currentUser.id,
+          repository_url: projectData.repositoryUrl,
+          live_demo_url: projectData.liveDemoUrl,
+        });
+
+      if (error) {
+        showNotification('Error saving draft: ' + error.message);
+      } else {
+        showNotification('Draft saved successfully');
+        setProjects((currentProjects) => [projectData, ...currentProjects]);
+        setActiveProfileTab('drafts');
+        navigateTo('/profile');
+      }
+    } catch (err) {
+      showNotification('Failed to save draft: ' + err.message);
+    }
   }
 
-  function handlePublishProject(submission) {
-    setProjects((currentProjects) => [
-      createProjectFromSubmission({
-        submission,
+  async function handlePublishProject(submission) {
+    try {
+      setIsPublishing(true);
+      const { files } = submission;
+      let imageUrls = [];
+      
+      if (files && files.length > 0) {
+        showNotification('Uploading images...');
+        imageUrls = await uploadFiles(files);
+      }
+
+      const projectData = createProjectFromSubmission({
+        submission: {
+          ...submission,
+          files: imageUrls.length > 0 ? [] : submission.files
+        },
         visibility: 'published',
-        projectList: currentProjects,
+        projectList: projects,
         ownerContributor: buildCurrentUserContributor(currentUser),
         contributorDirectory,
-      }),
-      ...currentProjects,
-    ]);
-    setActiveProfileTab('work');
-    navigateTo('/profile');
+      });
+
+      // Override images with uploaded URLs and add author_id for local state
+      if (imageUrls.length > 0) {
+        projectData.image = imageUrls[0];
+        projectData.gallery = imageUrls;
+      }
+      projectData.author_id = currentUser.id;
+      projectData.ownerSlug = currentUser.id;
+
+      console.log('Inserting project into Supabase:', projectData.title);
+      const { error } = await supabase
+        .from('projects')
+        .insert({
+          title: projectData.title,
+          slug: projectData.slug,
+          summary: projectData.summary,
+          image_url: projectData.image,
+          gallery: projectData.gallery,
+          tech_stack: projectData.techStack,
+          status: projectData.status,
+          year: projectData.cohort,
+          event: projectData.course,
+          problem_statements: projectData.problem,
+          solution_statements: projectData.solution,
+          innovations: projectData.innovations,
+          key_features: projectData.keyFeatures,
+          visibility: 'published',
+          author_id: currentUser.id,
+          repository_url: projectData.repositoryUrl,
+          live_demo_url: projectData.liveDemoUrl,
+        });
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        showNotification('Error publishing project: ' + error.message);
+      } else {
+        console.log('Project published successfully!');
+        showNotification('Project published successfully');
+        setProjects((currentProjects) => [projectData, ...currentProjects]);
+        setActiveProfileTab('work');
+        navigateTo('/profile');
+      }
+    } catch (err) {
+      showNotification('Failed to publish project: ' + err.message);
+    }
   }
 
-  function handleDeleteProject(projectSlug) {
-    setProjects((currentProjects) =>
-      currentProjects.filter(
-        (project) => !(project.ownerSlug === currentUser.slug && project.slug === projectSlug)
-      )
-    );
+  async function handleDeleteProject(projectSlug) {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('slug', projectSlug)
+      .eq('author_id', currentUser.id);
+
+    if (error) {
+      showNotification('Error deleting project: ' + error.message);
+    } else {
+      showNotification('Project deleted successfully');
+      setProjects((currentProjects) =>
+        currentProjects.filter(
+          (project) => !(project.ownerSlug === currentUser.slug && project.slug === projectSlug)
+        )
+      );
+    }
+  }
+
+  function handleSearchSubmit(e) {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      setIsSearchActive(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function handleClearSearch() {
+    setIsSearchActive(false);
+    setSearchTerm('');
   }
 
   const isDashboardPage = pathname === '/dashboard';
   const isDashboardChatPage = pathname.includes('/chat') || window.location.hash.includes('/chat');
   const isLoginPage = pathname === '/login';
+  const isLogoutPage = pathname === '/logout';
   const isSignupPage = pathname === '/signup';
   const isTermsPage = pathname === '/terms';
   const isPrivacyPage = pathname === '/privacy';
@@ -2265,11 +2765,14 @@ function App() {
   const isShowcasesPage = pathname === '/showcases';
   const isDashboardShowcasesPage = pathname === '/dashboard/showcases';
   const isAnyShowcasesPage = isShowcasesPage || isDashboardShowcasesPage;
+  
   const isContributorsPage = pathname === '/contributors';
   const isDashboardContributorsPage = pathname === '/dashboard/contributors';
-  const contributorProfileMatch = pathname.match(/^\/contributors\/([^/]+)$/);
-  const activeContributor = contributorProfileMatch
-    ? findContributorBySlug(contributorProfileMatch[1])
+
+  // GitHub style profiles: /:username (one part)
+  const isPublicProfilePath = pathname.match(/^\/(?!profile|dashboard|contributors|showcases|terms|privacy|contact|login|signup|logout)([^/]+)$/);
+  const activeContributor = isPublicProfilePath
+    ? findContributorBySlug(isPublicProfilePath[1])
     : null;
   const activeContributorProjects = activeContributor
     ? getContributorProjects(publishedProjects, activeContributor.slug)
@@ -2284,9 +2787,17 @@ function App() {
   const isProfileUploadEntryPage = pathname === '/profile/upload';
   const isProfileUploadDetailsPage = pathname === '/profile/upload/details';
   const isProfileUploadPage = isProfileUploadEntryPage || isProfileUploadDetailsPage;
+  
   const isProfileAreaPage = isProfilePage || isProfileSettingsPage;
-  const projectMatch = pathname.match(/^\/projects\/([^/]+)$/);
-  const activeProject = projectMatch ? getProjectRecord(projects, projectMatch[1]) : null;
+  
+  // Support both /projects/:slug and /:username/:slug
+  const projectMatch = pathname.match(/^\/projects\/([^/]+)$/) || 
+                       pathname.match(/^\/(?!profile|dashboard|contributors|showcases|terms|privacy|contact)([^/]+)\/([^/]+)$/);
+  
+  const activeProject = projectMatch 
+    ? getProjectRecord(projects, projectMatch[2] || projectMatch[1]) 
+    : null;
+  
   const isProjectDetailPage = Boolean(activeProject);
 
   function handleCloseProjectDetail() {
@@ -2300,6 +2811,13 @@ function App() {
     }
 
     window.location.hash = '/';
+  }
+
+  if (isLogoutPage) {
+    supabase.auth.signOut().then(() => {
+      window.location.hash = '/';
+    });
+    return null;
   }
 
   if (isDashboardPage) {
@@ -2329,7 +2847,20 @@ function App() {
     return (
       <div className="page-shell page-shell--login">
         <main>
-          {isLoginPage ? <LoginPage /> : <SignupPage />}
+          <AuthPage 
+            title={isLoginPage ? 'Welcome back' : 'Create account'} 
+            showNotification={showNotification}
+            onAuthSuccess={(user) => {
+              console.log('Auth success callback triggered for:', user.email);
+              try {
+                setCurrentUser(user);
+                localStorage.setItem('codefolio_user', JSON.stringify(user));
+                console.log('User state and localStorage updated');
+              } catch (e) {
+                console.error('Error in onAuthSuccess:', e);
+              }
+            }}
+          />
         </main>
       </div>
     );
@@ -2361,6 +2892,8 @@ function App() {
         isProjectDetailPage ? 'page-shell--project-detail' : ''
       }`}
     >
+      <SystemBanner message={notification} onClose={() => setNotification(null)} />
+
       {!isProjectDetailPage &&
       (isDashboardShowcasesPage ||
         isDashboardContributorsPage ||
@@ -2376,16 +2909,37 @@ function App() {
                 ? '/dashboard/contributors'
                 : '/dashboard'
           }
+          isSearchActive={hasScrolled}
+          searchTerm={searchTerm}
+          onSearchChange={(e) => setSearchTerm(e.target.value)}
+          onSearchSubmit={handleSearchSubmit}
         />
       ) : !isProjectDetailPage ? (
         <Header
           activePath={
             isShowcasesPage ? '/showcases' : isContributorsPage ? '/contributors' : '/'
           }
+          isSearchActive={hasScrolled}
+          searchTerm={searchTerm}
+          onSearchChange={(e) => setSearchTerm(e.target.value)}
+          onSearchSubmit={handleSearchSubmit}
         />
       ) : null}
 
       <main>
+        {isSearchActive && !isProjectDetailPage ? (
+          <section className="dashboard-search-results">
+            <div className="container">
+              <h1 className="dashboard-search-results__title">{searchTerm}</h1>
+              <p className="dashboard-search-results__subtitle">
+                {isAnyContributorsPage
+                  ? `Discover RCA's technical talent matching ${searchTerm}.`
+                  : `Explore real-world engineering project collections for ${searchTerm}.`}
+              </p>
+            </div>
+          </section>
+        ) : null}
+
         {isProjectDetailPage ? (
           <ProjectDetailPage
             project={activeProject}
@@ -2419,9 +2973,9 @@ function App() {
             toAppHref={toAppHref}
           />
         ) : isAnyContributorsPage ? (
-          <ContributorsPage toAppHref={toAppHref} contributors={contributorDirectory} />
+          <ContributorsPage toAppHref={toAppHref} contributors={filteredContributors} />
         ) : isAnyShowcasesPage ? (
-          <ShowcasesPage />
+          <ShowcasesPage searchTerm={searchTerm} />
         ) : isTermsPage ? (
           <InfoPage
             eyebrow="Legal"
@@ -2455,7 +3009,7 @@ function App() {
             actions={[{ label: 'support@codefolio.dev', href: 'mailto:support@codefolio.dev' }]}
           />
         ) : (
-          <LandingPage projects={featuredProjectCards} />
+          <LandingPage projects={featuredProjectCards} toAppHref={toAppHref} />
         )}
       </main>
 

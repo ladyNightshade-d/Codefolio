@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from './supabaseClient';
 import './login.css';
 
 function AuthCodeMark() {
@@ -46,35 +47,108 @@ function GoogleIcon() {
   );
 }
 
-function AuthPage({ title }) {
+function AuthPage({ title, showNotification, onAuthSuccess }) {
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState('email address');
   const [accessCode, setAccessCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  function handleEmailSubmit(event) {
+  async function handleEmailSubmit(event) {
     event.preventDefault();
+    setError('');
 
     const nextEmail = email.trim();
+    if (!nextEmail) return;
 
-    if (!nextEmail) {
-      return;
+    setIsLoading(true);
+    try {
+      // Call our custom Express API
+      const response = await fetch('http://localhost:5000/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: nextEmail }),
+      });
+
+      const data = await response.json();
+      console.log('Auth API Response:', data);
+
+      if (!response.ok) {
+        const msg = data.error || 'Failed to send code';
+        setError(msg);
+        if (typeof showNotification === 'function') {
+          showNotification(msg);
+        }
+      } else {
+        setSentTo(nextEmail);
+        setStep('code');
+        if (typeof showNotification === 'function') {
+          showNotification(`Verification code sent to ${nextEmail}`);
+        }
+      }
+    } catch (err) {
+      console.error('Auth Request Error:', err);
+      setError('An unexpected error occurred');
+      if (typeof showNotification === 'function') {
+        showNotification('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    setSentTo(nextEmail);
-    setStep('code');
   }
 
-  function handleCodeSubmit(event) {
+  async function handleCodeSubmit(event) {
     event.preventDefault();
+    setError('');
 
-    if (!accessCode.trim()) {
-      return;
-    }
+    if (!accessCode.trim()) return;
 
-    if (typeof window !== 'undefined') {
-      window.location.hash = '/dashboard';
+    setIsLoading(true);
+    try {
+      // Call our custom Express API
+      const response = await fetch('http://localhost:5000/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: sentTo, code: accessCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const msg = data.error || 'Invalid verification code';
+        setError(msg);
+        if (typeof showNotification === 'function') {
+          showNotification(msg);
+        }
+      } else {
+        const user = data.user;
+        // Map backend user to frontend format if needed
+        const mappedUser = {
+          ...user,
+          accountEmail: user.email,
+          image: user.avatar_url
+        };
+        onAuthSuccess(mappedUser);
+        if (typeof showNotification === 'function') {
+          showNotification('Successfully signed in');
+        }
+        console.log('Verification successful, redirecting to dashboard...');
+        window.location.hash = '#/dashboard';
+      }
+    } catch (err) {
+      setError('An unexpected error occurred.');
+      if (typeof showNotification === 'function') {
+        showNotification('An unexpected error occurred.');
+      }
+    } finally {
+      setIsLoading(false);
     }
+  }
+
+  function handleGoogleLogin() {
+    // This would typically redirect to /api/auth/google
+    window.location.href = '/api/auth/google';
   }
 
   function handleEditEmail() {
@@ -96,7 +170,7 @@ function AuthPage({ title }) {
 
           {step === 'email' ? (
             <div className="login-form__stack">
-              <button className="login-form__social" type="button">
+              <button className="login-form__social" type="button" onClick={handleGoogleLogin}>
                 <GoogleIcon />
                 <span>Continue with Google</span>
               </button>
@@ -120,10 +194,11 @@ function AuthPage({ title }) {
                   placeholder="Enter email address"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
+                  disabled={isLoading}
                 />
 
-                <button className="login-form__submit" type="submit">
-                  Continue
+                <button className="login-form__submit" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Sending...' : 'Continue'}
                 </button>
               </form>
             </div>
@@ -152,10 +227,11 @@ function AuthPage({ title }) {
                   placeholder="Enter access code"
                   value={accessCode}
                   onChange={(event) => setAccessCode(event.target.value)}
+                  disabled={isLoading}
                 />
 
-                <button className="login-form__submit" type="submit">
-                  Continue
+                <button className="login-form__submit" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Verifying...' : 'Continue'}
                 </button>
               </form>
             </div>

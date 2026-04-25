@@ -233,6 +233,7 @@ function SettingsPage({
     () => profile?.education || defaultEducationItems
   );
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(profile?.image ?? '/me.png');
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -248,6 +249,7 @@ function SettingsPage({
     setProfileFormData(createProfileFormState(profile));
     setEducationItems(profile?.education || defaultEducationItems);
     setAvatarPreviewUrl(profile?.image ?? '/me.png');
+    setSelectedAvatarFile(null);
   }, [profile]);
 
   function handleGeneralInputChange(event) {
@@ -288,6 +290,7 @@ function SettingsPage({
       return;
     }
 
+    setSelectedAvatarFile(file);
     setAvatarPreviewUrl((currentUrl) => {
       if (currentUrl.startsWith('blob:')) {
         URL.revokeObjectURL(currentUrl);
@@ -299,6 +302,7 @@ function SettingsPage({
   }
 
   function handleDeleteAvatar() {
+    setSelectedAvatarFile(null);
     setAvatarPreviewUrl((currentUrl) => {
       if (currentUrl.startsWith('blob:')) {
         URL.revokeObjectURL(currentUrl);
@@ -329,6 +333,7 @@ function SettingsPage({
       skills: normalizeListInput(profileFormData.skills),
       specialties: normalizeListInput(profileFormData.specialties, { lowercase: true }),
       image: avatarPreviewUrl,
+      avatarFile: selectedAvatarFile,
       education: educationItems,
       contact: {
         email: profileFormData.displayEmail.trim(),
@@ -855,7 +860,7 @@ function SettingsPage({
             })}
           </nav>
 
-          <a className="settings-page__logout" href={toAppHref('/login')}>
+          <a className="settings-page__logout" href={toAppHref('/logout')}>
             <LogoutIcon />
             <span>Logout</span>
           </a>

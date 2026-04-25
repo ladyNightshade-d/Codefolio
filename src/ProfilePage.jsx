@@ -6,7 +6,6 @@ const profileTabs = [
   { id: 'drafts', label: 'Drafts' },
   { id: 'reviews', label: 'Reviews' },
   { id: 'recent', label: 'Recent' },
-  { id: 'collections', label: 'Collections' },
   { id: 'liked', label: 'Liked Shots' },
 ];
 

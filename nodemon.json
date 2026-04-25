@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "prisma/*.db",
+    "prisma/*.db-journal",
+    "prisma/migrations/*",
+    "node_modules/*"
+  ],
+  "ext": "js,mjs,cjs,json"
+}

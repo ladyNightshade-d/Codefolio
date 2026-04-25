@@ -21,6 +21,7 @@ function createInitialFormState() {
     summary: '',
     problemText: '',
     solutionText: '',
+    keyFeaturesText: '',
     techStack: [],
     tags: [],
     teamMembers: [],
@@ -55,7 +56,9 @@ function buildSubmission(files, formState) {
       event: formState.event.trim(),
       problemText: formState.problemText.trim(),
       solutionText: formState.solutionText.trim(),
+      keyFeaturesText: formState.keyFeaturesText.trim(),
       innovations: buildFeatureList(formState.solutionText),
+      keyFeatures: buildFeatureList(formState.keyFeaturesText),
       teamMembers: formState.teamMembers,
       repositoryUrl: formState.repositoryUrl.trim(),
       liveDemoUrl: formState.liveDemoUrl.trim(),
@@ -195,6 +198,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   const isDetailsMode = mode === 'details';
   const fileInputRef = useRef(null);
   const solutionInputRef = useRef(null);
+  const keyFeaturesInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [validationMessage, setValidationMessage] = useState('');
@@ -203,6 +207,8 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   const [contributorInput, setContributorInput] = useState('');
   const [formState, setFormState] = useState(() => createInitialFormState());
   const pendingUpload = isDetailsMode ? readPendingUpload() : null;
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
   const canOpenDetails = !isDetailsMode || hasUploadDetailsEntry();
 
@@ -310,10 +316,10 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     }));
   }
 
-  function applySolutionFormat(type) {
-    const textarea = solutionInputRef.current;
+  function applyFormat(field, ref, type) {
+    const textarea = ref.current;
     if (!textarea) return;
-    const currentValue = formState.solutionText;
+    const currentValue = formState[field];
     const selectionStart = textarea.selectionStart || 0;
     const selectionEnd = textarea.selectionEnd || 0;
     const selectedText = currentValue.slice(selectionStart, selectionEnd);
@@ -323,6 +329,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     let nextValue = currentValue;
     let nextSelectionStart = selectionStart;
     let nextSelectionEnd = selectionEnd;
+    
     if (type === 'bold') {
       insertValue = `**${selectedText || 'bold text'}**`;
       nextValue = `${beforeSelection}${insertValue}${afterSelection}`;
@@ -345,7 +352,8 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
       nextSelectionStart = selectionStart;
       nextSelectionEnd = selectionStart + insertValue.length;
     }
-    updateFormField('solutionText', nextValue);
+    
+    updateFormField(field, nextValue);
     requestAnimationFrame(() => {
       textarea.focus();
       textarea.setSelectionRange(nextSelectionStart, nextSelectionEnd);
@@ -378,27 +386,42 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     onSaveDraft?.(buildSubmission(selectedFiles, formState));
   }
 
-  function handleDetailsDraft() {
+  async function handleDetailsDraft(event) {
+    event.preventDefault();
+    console.log('Draft button clicked');
     if (!pendingFiles.length) {
-      clearUploadDetailsEntry();
+      console.log('No pending files, redirecting');
       navigateToHash('/profile/upload');
       return;
     }
-    clearUploadDetailsEntry();
-    clearPendingUpload();
-    onSaveDraft?.(buildSubmission(pendingFiles, formState));
+    
+    setIsSavingDraft(true);
+    try {
+      console.log('Calling onSaveDraft...');
+      await onSaveDraft?.(buildSubmission(pendingFiles, formState));
+    } finally {
+      setIsSavingDraft(false);
+    }
   }
 
-  function handlePublish(event) {
+  async function handlePublish(event) {
     event.preventDefault();
+    console.log('Publish button clicked');
     if (!pendingFiles.length) {
-      clearUploadDetailsEntry();
+      console.log('No pending files, redirecting');
       navigateToHash('/profile/upload');
       return;
     }
-    clearUploadDetailsEntry();
-    clearPendingUpload();
-    onPublishProject?.(buildSubmission(pendingFiles, formState));
+
+    setIsPublishing(true);
+    try {
+      console.log('Calling onPublishProject...');
+      await onPublishProject?.(buildSubmission(pendingFiles, formState));
+    } catch (err) {
+      console.error('Publish error in component:', err);
+    } finally {
+      setIsPublishing(false);
+    }
   }
 
   if (!isDetailsMode) {
@@ -450,8 +473,24 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
         <div className="upload-shot-page__topbar upload-shot-page__topbar--details">
           <a className="upload-shot-page__secondary-button" href={profileHref} onClick={() => { clearUploadDetailsEntry(); clearPendingUpload(); }}>Cancel</a>
           <div className="upload-shot-page__topbar-actions">
-            <button className="upload-shot-page__secondary-button upload-shot-page__secondary-button--soft" type="button" onClick={handleDetailsDraft}>Save as draft</button>
-            <button className="upload-shot-page__primary-button upload-shot-page__primary-button--publish" type="submit" form="upload-shot-details-form">Publish Project</button>
+            <button 
+              key="publish-btn"
+              className="upload-shot-page__primary-button upload-shot-page__primary-button--publish" 
+              type="submit" 
+              form="upload-shot-details-form"
+              disabled={isPublishing}
+            >
+              {isPublishing ? 'Publishing...' : 'Publish Project'}
+            </button>
+            <button 
+              key="draft-btn"
+              className="upload-shot-page__secondary-button" 
+              type="button" 
+              onClick={handleDetailsDraft}
+              disabled={isSavingDraft}
+            >
+              {isSavingDraft ? 'Saving...' : 'Save Draft'}
+            </button>
           </div>
         </div>
         <div className="upload-shot-page__details-shell">
@@ -463,14 +502,25 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
               <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Tagline</span><input className="upload-shot-page__text-input" type="text" value={formState.summary} onChange={(event) => updateFormField('summary', event.target.value)} /></label>
               <label className="upload-shot-page__field"><span className="upload-shot-page__field-label">Problem Statement</span><textarea className="upload-shot-page__text-area upload-shot-page__text-area--problem" value={formState.problemText} onChange={(event) => updateFormField('problemText', event.target.value)} /></label>
               <div className="upload-shot-page__field">
-                <span className="upload-shot-page__field-label">Solution / Key Features</span>
+                <span className="upload-shot-page__field-label">The Solution</span>
                 <div className="upload-shot-page__editor">
                   <div className="upload-shot-page__editor-toolbar">
-                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bold" onClick={() => applySolutionFormat('bold')}>B</button>
-                    <button className="upload-shot-page__toolbar-button upload-shot-page__toolbar-button--italic" type="button" aria-label="Italic" onClick={() => applySolutionFormat('italic')}>I</button>
-                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bullet list" onClick={() => applySolutionFormat('list')}><ListBulletsIcon /></button>
+                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bold" onClick={() => applyFormat('solutionText', solutionInputRef, 'bold')}>B</button>
+                    <button className="upload-shot-page__toolbar-button upload-shot-page__toolbar-button--italic" type="button" aria-label="Italic" onClick={() => applyFormat('solutionText', solutionInputRef, 'italic')}>I</button>
+                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bullet list" onClick={() => applyFormat('solutionText', solutionInputRef, 'list')}><ListBulletsIcon /></button>
                   </div>
-                  <textarea ref={solutionInputRef} className="upload-shot-page__editor-input" aria-label="Solution and key features" value={formState.solutionText} onChange={(event) => updateFormField('solutionText', event.target.value)} />
+                  <textarea ref={solutionInputRef} className="upload-shot-page__editor-input" aria-label="Solution" value={formState.solutionText} onChange={(event) => updateFormField('solutionText', event.target.value)} />
+                </div>
+              </div>
+              <div className="upload-shot-page__field">
+                <span className="upload-shot-page__field-label">Key Features</span>
+                <div className="upload-shot-page__editor">
+                  <div className="upload-shot-page__editor-toolbar">
+                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bold" onClick={() => applyFormat('keyFeaturesText', keyFeaturesInputRef, 'bold')}>B</button>
+                    <button className="upload-shot-page__toolbar-button upload-shot-page__toolbar-button--italic" type="button" aria-label="Italic" onClick={() => applyFormat('keyFeaturesText', keyFeaturesInputRef, 'italic')}>I</button>
+                    <button className="upload-shot-page__toolbar-button" type="button" aria-label="Bullet list" onClick={() => applyFormat('keyFeaturesText', keyFeaturesInputRef, 'list')}><ListBulletsIcon /></button>
+                  </div>
+                  <textarea ref={keyFeaturesInputRef} className="upload-shot-page__editor-input" aria-label="Key features" value={formState.keyFeaturesText} onChange={(event) => updateFormField('keyFeaturesText', event.target.value)} />
                 </div>
               </div>
             </section>
