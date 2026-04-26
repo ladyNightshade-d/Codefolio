@@ -37,7 +37,7 @@ const upload = multer({ storage });
 
 // AI Setup
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "YOUR_GOOGLE_API_KEY");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const PORT = process.env.PORT || 5000;
 
 const app = express();
