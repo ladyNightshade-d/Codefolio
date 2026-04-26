@@ -983,12 +983,12 @@ function buildContributorDirectory(currentUserProfile, allContributors = []) {
   // Only use contributors from backend, no fallback to dummy seed data
   const baseContributors = allContributors;
   
-  // Build objects and ensure every one has a slug
+  // Build objects and ensure every one has a slug — preserve the UUID id as slug
   const directory = [
     buildCurrentUserContributor(currentUserProfile), 
     ...baseContributors.map(c => ({
       ...c,
-      slug: c.slug || (c.name ? slugify(c.name) : c.id) || 'unknown'
+      slug: c.slug || c.id || 'unknown'  // Keep UUID slug, don't re-slugify name
     }))
   ];
   
@@ -2582,8 +2582,8 @@ function App() {
   const isContributorsPage = pathname === '/contributors';
   const isDashboardContributorsPage = pathname === '/dashboard/contributors';
 
-  // GitHub style profiles: /:username (one part)
-  const isPublicProfilePath = pathname.match(/^\/(?!profile|dashboard|contributors|showcases|terms|privacy|contact|login|signup|logout)([^/]+)$/);
+  // GitHub-style profiles: /contributors/:slug
+  const isPublicProfilePath = pathname.match(/^\/contributors\/([^/]+)$/);
   const activeContributor = isPublicProfilePath
     ? findContributorBySlug(isPublicProfilePath[1])
     : null;
