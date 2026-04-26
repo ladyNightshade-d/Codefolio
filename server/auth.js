@@ -2,6 +2,9 @@ import { query } from './db.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import { generateToken } from './auth_middleware.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -36,15 +39,24 @@ export const sendVerificationCode = async (email, baseUrl = '') => {
       const userResult = await query('SELECT avatar_url FROM users WHERE email = $1', [cleanEmail]);
       const user = userResult.rows[0];
       if (user && user.avatar_url && !user.avatar_url.includes('ui-avatars.com')) {
-        let absoluteAvatarUrl = user.avatar_url;
-        if (absoluteAvatarUrl.startsWith('/')) {
-          absoluteAvatarUrl = baseUrl + absoluteAvatarUrl;
+        const avatarPath = user.avatar_url;
+        if (avatarPath.startsWith('/uploads/')) {
+          // Read file from disk and convert to base64 so Gmail can display it
+          const __dirname = path.dirname(fileURLToPath(import.meta.url));
+          const filePath = path.join(__dirname, 'public', avatarPath);
+          if (fs.existsSync(filePath)) {
+            const fileBuffer = fs.readFileSync(filePath);
+            const ext = path.extname(filePath).slice(1).replace('jpg', 'jpeg');
+            const mimeType = `image/${ext || 'jpeg'}`;
+            const base64 = fileBuffer.toString('base64');
+            const dataUri = `data:${mimeType};base64,${base64}`;
+            avatarHtml = `
+            <div style="margin: 0 auto 40px auto; text-align: center;">
+              <img src="${dataUri}" alt="Profile Picture" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto;" />
+            </div>
+            `;
+          }
         }
-        avatarHtml = `
-        <div style="margin: 0 auto 40px auto; text-align: center;">
-          <img src="${absoluteAvatarUrl}" alt="Profile Picture" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto;" />
-        </div>
-        `;
       }
     } catch (e) {
       console.error('Error fetching user avatar for email:', e);
