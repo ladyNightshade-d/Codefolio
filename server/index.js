@@ -226,6 +226,20 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
   }
 });
 
+// Update General Settings (username, email)
+app.put('/api/general', authenticateToken, async (req, res) => {
+  const { username, accountEmail } = req.body;
+  try {
+    const result = await query(
+      'UPDATE users SET username = $1 WHERE id = $2 RETURNING *',
+      [username.trim(), req.user.id]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Auth Routes
 app.post('/api/auth/send-code', async (req, res) => {
   const { email } = req.body;

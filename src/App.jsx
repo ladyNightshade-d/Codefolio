@@ -2390,19 +2390,18 @@ function App() {
 
   async function handleSaveGeneral(nextGeneralSettings) {
     try {
-      const updatedUser = await api.updateProfile({
-        ...currentUser,
-        username: nextGeneralSettings.username,
-      });
+      const updatedUser = await api.updateGeneral(nextGeneralSettings);
 
       if (updatedUser.error) {
         showNotification('Error updating settings: ' + updatedUser.error);
       } else {
         showNotification('Settings updated successfully');
-        setCurrentUser((currentProfile) => ({
-          ...currentProfile,
-          username: nextGeneralSettings.username || currentProfile.username,
-        }));
+        const nextProfile = {
+          ...currentUser,
+          username: updatedUser.username,
+        };
+        setCurrentUser(nextProfile);
+        localStorage.setItem('codefolio_user', JSON.stringify(nextProfile));
       }
     } catch (err) {
       showNotification('Failed to update settings: ' + err.message);

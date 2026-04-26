@@ -64,6 +64,15 @@ export const api = {
     return res.json();
   },
 
+  updateGeneral: async (generalData) => {
+    const res = await fetch(`${API_BASE_URL}/general`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(generalData)
+    });
+    return res.json();
+  },
+
   // Contributors
   getContributors: async () => {
     const res = await fetch(`${API_BASE_URL}/contributors`);
