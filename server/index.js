@@ -204,19 +204,23 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
       .replace(/^-+|-+$/g, '');
     const slug = `${baseSlug}-${Date.now().toString(36)}`;
 
+    // Ensure team_members column exists (safe migration)
+    await query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS team_members JSONB DEFAULT '[]'`).catch(() => {});
+
     const result = await query(`
       INSERT INTO projects (
         title, slug, summary, image_url, gallery, tech_stack, status, 
         year, event, problem_statements, solution_statements, innovations, 
-        key_features, visibility, author_id, repository_url, live_demo_url
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+        key_features, visibility, author_id, repository_url, live_demo_url, team_members
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       ON CONFLICT (slug) DO UPDATE SET
         title = EXCLUDED.title,
         summary = EXCLUDED.summary,
         image_url = EXCLUDED.image_url,
         gallery = EXCLUDED.gallery,
         tech_stack = EXCLUDED.tech_stack,
-        visibility = EXCLUDED.visibility
+        visibility = EXCLUDED.visibility,
+        team_members = EXCLUDED.team_members
       RETURNING *
     `, [
       p.title,
@@ -224,24 +228,24 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
       p.summary,
       p.image_url,
       p.gallery,
-      p.tech_stack || p.techStack,                          // camelCase fallback
+      p.tech_stack || p.techStack,
       p.status,
       p.year,
       p.event,
-      p.problem_statements || p.problemText,                // frontend uses problemText
-      p.solution_statements || p.solutionText,              // frontend uses solutionText
+      p.problem_statements || p.problemText,
+      p.solution_statements || p.solutionText,
       JSON.stringify(p.innovations || []),
       JSON.stringify(p.keyFeatures || p.key_features || []),
       p.visibility,
       req.user.id,
       p.repository_url || p.repositoryUrl,
       p.live_demo_url || p.liveDemoUrl,
+      JSON.stringify(p.teamMembers || p.team_members || []),
     ]);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('POST /api/projects error:', error.message, '| body:', JSON.stringify(req.body));
     res.status(500).json({ error: error.message });
-
   }
 });
 

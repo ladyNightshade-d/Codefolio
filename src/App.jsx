@@ -2035,17 +2035,7 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
                 {paragraph}
               </p>
             ))}
-            <div className="project-detail__innovation-card">
-              <h3 className="project-detail__innovation-title">Key Innovations</h3>
-              <div className="project-detail__innovation-list">
-                {project.innovations.map((innovation) => (
-                  <div key={innovation} className="project-detail__innovation-item">
-                    <CheckCircleIcon />
-                    <p>{innovation}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+
             {project.keyFeatures && project.keyFeatures.length > 0 && (
               <div className="project-detail__innovation-card" style={{ marginTop: '24px' }}>
                 <h3 className="project-detail__innovation-title">Key Features</h3>
@@ -2331,7 +2321,12 @@ function App() {
             keyFeatures: toArray(p.key_features),
             repositoryUrl: p.repository_url,
             liveDemoUrl: p.live_demo_url,
-            team: [{ slug: p.author_id, name: p.users?.name || 'Unknown', image: p.users?.avatar_url, role: 'Lead' }]
+            team: (() => {
+              // Use saved teamMembers if available, otherwise fall back to author
+              const saved = toArray(p.team_members);
+              if (saved.length > 0) return saved;
+              return [{ slug: p.author_id, name: p.users?.name || 'Unknown', image: p.users?.avatar_url, role: 'Lead' }];
+            })()
           })));
         }
 
