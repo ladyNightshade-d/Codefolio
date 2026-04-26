@@ -176,17 +176,13 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
 // File Upload Endpoint
 app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  const protocol = req.protocol;
-  const host = req.get('host');
-  const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+  const fileUrl = `/uploads/${req.file.filename}`;
   res.json({ url: fileUrl });
 });
 
 // Multi-file Upload
 app.post('/api/upload-multiple', authenticateToken, upload.array('files', 10), (req, res) => {
-  const urls = req.files.map(file => {
-    return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
-  });
+  const urls = req.files.map(file => `/uploads/${file.filename}`);
   res.json({ urls });
 });
 
