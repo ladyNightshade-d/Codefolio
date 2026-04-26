@@ -2308,19 +2308,27 @@ function App() {
         ]);
 
         if (dbProjects) {
+          // Helper: convert any DB value to an array
+          const toArray = (val) => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            try { const parsed = JSON.parse(val); if (Array.isArray(parsed)) return parsed; } catch {}
+            return val.split('\n').map(s => s.trim()).filter(Boolean);
+          };
+
           setProjects(dbProjects.map(p => ({
             ...p,
             ownerSlug: p.author_id,
             ownerUsername: p.users?.username,
-            techStack: p.tech_stack,
+            techStack: toArray(p.tech_stack),
             image: p.image_url,
-            gallery: p.gallery,
+            gallery: toArray(p.gallery),
             cohort: p.year,
             course: p.event,
-            problem: p.problem_statements,
-            solution: p.solution_statements,
-            innovations: p.innovations,
-            keyFeatures: p.key_features,
+            problem: toArray(p.problem_statements),
+            solution: toArray(p.solution_statements),
+            innovations: toArray(p.innovations),
+            keyFeatures: toArray(p.key_features),
             repositoryUrl: p.repository_url,
             liveDemoUrl: p.live_demo_url,
             team: [{ slug: p.author_id, name: p.users?.name || 'Unknown', image: p.users?.avatar_url, role: 'Lead' }]
@@ -2385,6 +2393,8 @@ function App() {
       window.history.pushState({}, '', toAppHref(path));
       // Manually trigger a popstate event since pushState doesn't do it
       window.dispatchEvent(new PopStateEvent('popstate'));
+      // Always scroll to top on navigation
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }
 
