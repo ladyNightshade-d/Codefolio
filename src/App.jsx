@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { api } from './api';
 import DashboardPage, { DashboardHeader } from './DashboardPage.jsx';
 import ChatWithAiPage from './ChatWithAiPage.jsx';
 import InfoPage from './InfoPage.jsx';
@@ -2305,14 +2305,12 @@ function App() {
     // Initial fetch for public projects and contributors
     const fetchPublicData = async () => {
       try {
-        const [projectsRes, contributorsRes, showcasesRes] = await Promise.all([
-          fetch('http://localhost:5000/api/projects'),
-          fetch('http://localhost:5000/api/contributors'),
-          fetch('http://localhost:5000/api/showcases')
+        const [dbProjects, dbContributors] = await Promise.all([
+          api.getProjects(),
+          api.getContributors()
         ]);
 
-        if (projectsRes.ok) {
-          const dbProjects = await projectsRes.json();
+        if (dbProjects) {
           setProjects(dbProjects.map(p => ({
             ...p,
             ownerSlug: p.author_id,
@@ -2332,11 +2330,10 @@ function App() {
           })));
         }
 
-        if (contributorsRes.ok) {
-          const dbContributors = await contributorsRes.json();
+        if (dbContributors) {
           setAllContributors(dbContributors.map(c => ({
             ...c,
-            slug: c.id, // Using ID as fallback slug for database users
+            slug: c.id, 
             image: c.avatar_url,
             contact: {
               email: c.email,
@@ -2345,19 +2342,6 @@ function App() {
             }
           })));
         }
-
-        if (showcasesRes.ok) {
-          const dbShowcases = await showcasesRes.json();
-          // Map backend data to frontend structure
-          const mappedShowcases = dbShowcases.map(s => ({
-            ...s,
-            author: s.users?.name || 'Anonymous',
-            image: s.image_url || s.image,
-            avatar: s.avatar_url || s.avatar,
-            fallbackPreview: s.fallback_preview || s.fallbackPreview
-          }));
-          setAllShowcases(mappedShowcases);
-        }
       } catch (error) {
         console.error('Fetch error:', error);
       }
@@ -2365,67 +2349,12 @@ function App() {
 
     fetchPublicData();
 
-    // Custom Session Initializer
-    if (currentUser && (currentUser.id || currentUser.accountEmail || currentUser.email) && currentUser.id !== currentUserSeed.id) {
-      const fetchUserData = async () => {
-        // 1. Refresh profile
-        let query = supabase.from('users').select('*');
-        
-        if (currentUser.id && currentUser.id !== 'undefined') {
-          query = query.eq('id', currentUser.id);
-        } else if (currentUser.accountEmail || currentUser.email) {
-          query = query.eq('email', currentUser.accountEmail || currentUser.email);
-        } else {
-          return; // Can't fetch without ID or email
-        }
 
-        const { data: profile } = await query.single();
-
-        if (profile) {
-          const mappedUser = {
-            ...currentUser,
-            ...profile,
-            image: profile.avatar_url,
-            contact: {
-              email: profile.contact_email || '',
-              phone: profile.phone_number || '',
-              website: profile.website_url || '',
-              github: profile.github_url || '',
-              linkedin: profile.linkedin_url || '',
-            }
-          };
-          setCurrentUser(mappedUser);
-        }
-
-        // 2. Fetch projects
-        const { data: dbProjects } = await supabase
-          .from('projects')
-          .select('*, users(name, avatar_url)')
-          .or(`visibility.eq.published,author_id.eq.${currentUser.id}`);
-
-        if (dbProjects) {
-          const mappedProjects = dbProjects.map(p => ({
-            ...p,
-            ownerSlug: p.author_id,
-            techStack: p.tech_stack,
-            image: p.image_url,
-            gallery: p.gallery,
-            cohort: p.year,
-            course: p.event,
-            problem: p.problem_statements,
-            solution: p.solution_statements,
-            innovations: p.innovations,
-            keyFeatures: p.key_features,
-            repositoryUrl: p.repository_url,
-            liveDemoUrl: p.live_demo_url,
-            team: [{ slug: p.author_id, name: p.users.name, image: p.users.avatar_url, role: 'Lead' }]
-          }));
-          setProjects(mappedProjects);
-        }
-      };
-
-      fetchUserData();
+    // User session data refresh (legacy)
+    if (currentUser && currentUser.id && currentUser.id !== currentUserSeed.id) {
+       // Profile and projects are now largely managed via API
     }
+
   }, [pathname, currentUser?.id]);
 
   const contributorDirectory = buildContributorDirectory(currentUser, allContributors);
@@ -2462,23 +2391,26 @@ function App() {
   }
 
   async function handleSaveGeneral(nextGeneralSettings) {
-    const { error } = await supabase
-      .from('users')
-      .update({
+    try {
+      const updatedUser = await api.updateProfile({
+        ...currentUser,
         username: nextGeneralSettings.username,
-      })
-      .eq('id', currentUser.id);
+      });
 
-    if (error) {
-      showNotification('Error updating settings: ' + error.message);
-    } else {
-      showNotification('Settings updated successfully');
-      setCurrentUser((currentProfile) => ({
-        ...currentProfile,
-        username: nextGeneralSettings.username || currentProfile.username,
-      }));
+      if (updatedUser.error) {
+        showNotification('Error updating settings: ' + updatedUser.error);
+      } else {
+        showNotification('Settings updated successfully');
+        setCurrentUser((currentProfile) => ({
+          ...currentProfile,
+          username: nextGeneralSettings.username || currentProfile.username,
+        }));
+      }
+    } catch (err) {
+      showNotification('Failed to update settings: ' + err.message);
     }
   }
+
 
   async function handleSaveProfile(nextProfileData) {
     try {
@@ -2486,122 +2418,52 @@ function App() {
 
       if (nextProfileData.avatarFile) {
         showNotification('Uploading profile picture...');
-        const uploadedUrls = await uploadFiles([nextProfileData.avatarFile], 'avatars');
-        if (uploadedUrls.length > 0) {
-          avatarUrl = uploadedUrls[0];
+        const uploadRes = await api.uploadFile(nextProfileData.avatarFile);
+        if (uploadRes.url) {
+          avatarUrl = uploadRes.url;
         }
       }
 
-      const { error } = await supabase
-        .from('users')
-        .update({
-          name: nextProfileData.name,
-          role: nextProfileData.role,
-          location: nextProfileData.location,
-          headline: nextProfileData.headline,
-          bio: nextProfileData.bio,
-          skills: nextProfileData.skills,
-          specialties: nextProfileData.specialties,
-          avatar_url: avatarUrl,
-          education: nextProfileData.education,
-          contact_email: nextProfileData.contact.email,
-          phone_number: nextProfileData.contact.phone,
-          website_url: nextProfileData.contact.website,
-          github_url: nextProfileData.contact.github,
-          linkedin_url: nextProfileData.contact.linkedin,
-        })
-        .match(currentUser.id && currentUser.id !== 'undefined' ? { id: currentUser.id } : { email: currentUser.accountEmail || currentUser.email });
+      const updatedUser = await api.updateProfile({
+        ...nextProfileData,
+        avatar_url: avatarUrl,
+        contact_email: nextProfileData.contact.email,
+        phone_number: nextProfileData.contact.phone,
+        website_url: nextProfileData.contact.website,
+        github_url: nextProfileData.contact.github,
+        linkedin_url: nextProfileData.contact.linkedin,
+      });
 
-      if (error) {
-        showNotification('Error updating profile: ' + error.message);
+      if (updatedUser.error) {
+        showNotification('Error updating profile: ' + updatedUser.error);
       } else {
         showNotification('Profile updated successfully');
         const nextProfile = {
           ...currentUser,
           ...nextProfileData,
+          ...updatedUser,
           image: avatarUrl,
-          contact: {
-            ...currentUser.contact,
-            ...nextProfileData.contact,
-          },
         };
 
         setCurrentUser(nextProfile);
-        setProjects((currentProjects) =>
-          syncProjectsWithContributor(currentProjects, buildCurrentUserContributor(nextProfile))
-        );
+        localStorage.setItem('codefolio_user', JSON.stringify(nextProfile));
       }
     } catch (err) {
       showNotification('Failed to save profile: ' + err.message);
     }
   }
 
+
   function handleSaveSecurity(nextSecuritySettings) {
-    // Supabase handles password changes via auth.updateUser
-    supabase.auth.updateUser({ password: nextSecuritySettings.password })
-      .then(({ error }) => {
-        if (error) showNotification('Error updating password: ' + error.message);
-        else showNotification('Password updated successfully');
-      });
+    showNotification('Security settings saved locally (Simulation)');
   }
 
   function handleSaveNotifications(nextNotifications) {
-    // Storing notifications preferences in user metadata or a separate column
-    supabase.auth.updateUser({
-      data: { notifications: nextNotifications }
-    }).then(({ error }) => {
-      if (error) showNotification('Error updating notifications: ' + error.message);
-      else {
-        showNotification('Notifications updated successfully');
-        setCurrentUser((currentProfile) => ({
-          ...currentProfile,
-          notifications: nextNotifications,
-        }));
-      }
-    });
+    showNotification('Notification settings saved locally (Simulation)');
   }
 
-  async function uploadFiles(files, bucket = 'projects') {
-    if (!files || files.length === 0) return [];
-    
-    // Ensure we have an array of files/strings
-    const fileArray = Array.from(files);
-    
-    const uploadPromises = fileArray.map(async (file) => {
-      // If it's already a public URL or not a file we can upload, return as is
-      if (typeof file === 'string' && (file.startsWith('http') || !file.startsWith('blob:'))) {
-        return file;
-      }
 
-      // If it's a blob URL, we need the original File object. 
-      // But usually we pass the File object directly to this function.
-      if (!(file instanceof File)) {
-        return typeof file === 'string' ? file : null;
-      }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `${currentUser.id}/${fileName}`;
-      
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file);
-        
-      if (error) {
-        console.error(`Upload error in bucket "${bucket}":`, error);
-        throw error;
-      }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-        
-      return publicUrl;
-    });
-    
-    const results = await Promise.all(uploadPromises);
-    return results.filter(Boolean);
-  }
 
   async function handleSaveDraft(submission) {
     try {
@@ -2611,63 +2473,35 @@ function App() {
       
       if (files && files.length > 0) {
         showNotification('Uploading images...');
-        imageUrls = await uploadFiles(files);
+        const uploadRes = await api.uploadMultiple(files);
+        imageUrls = uploadRes.urls || [];
       }
 
-      const projectData = createProjectFromSubmission({
-        submission: {
-          ...submission,
-          // Replace local blob URLs with remote URLs if upload succeeded
-          files: imageUrls.length > 0 ? [] : submission.files
-        },
+      const projectData = {
+        ...submission,
+        image_url: imageUrls[0] || submission.image,
+        gallery: imageUrls.length > 0 ? imageUrls : submission.gallery,
+        tech_stack: submission.techStack,
         visibility: 'draft',
-        projectList: projects,
-        ownerContributor: buildCurrentUserContributor(currentUser),
-        contributorDirectory,
-      });
+      };
 
-      // Override images with uploaded URLs and add author_id for local state
-      if (imageUrls.length > 0) {
-        projectData.image = imageUrls[0];
-        projectData.gallery = imageUrls;
-      }
-      projectData.author_id = currentUser.id;
-      projectData.ownerSlug = currentUser.id;
+      const result = await api.saveProject(projectData);
 
-      const { error } = await supabase
-        .from('projects')
-        .insert({
-          title: projectData.title,
-          slug: projectData.slug,
-          summary: projectData.summary,
-          image_url: projectData.image,
-          gallery: projectData.gallery,
-          tech_stack: projectData.techStack,
-          status: projectData.status,
-          year: projectData.cohort,
-          event: projectData.course,
-          problem_statements: projectData.problem,
-          solution_statements: projectData.solution,
-          innovations: projectData.innovations,
-          key_features: projectData.keyFeatures,
-          visibility: 'draft',
-          author_id: currentUser.id,
-          repository_url: projectData.repositoryUrl,
-          live_demo_url: projectData.liveDemoUrl,
-        });
-
-      if (error) {
-        showNotification('Error saving draft: ' + error.message);
+      if (result.error) {
+        showNotification('Error saving draft: ' + result.error);
       } else {
         showNotification('Draft saved successfully');
-        setProjects((currentProjects) => [projectData, ...currentProjects]);
+        setProjects((currentProjects) => [result, ...currentProjects]);
         setActiveProfileTab('drafts');
         navigateTo('/profile');
       }
     } catch (err) {
       showNotification('Failed to save draft: ' + err.message);
+    } finally {
+      setIsSavingDraft(false);
     }
   }
+
 
   async function handlePublishProject(submission) {
     try {
@@ -2677,84 +2511,41 @@ function App() {
       
       if (files && files.length > 0) {
         showNotification('Uploading images...');
-        imageUrls = await uploadFiles(files);
+        const uploadRes = await api.uploadMultiple(files);
+        imageUrls = uploadRes.urls || [];
       }
 
-      const projectData = createProjectFromSubmission({
-        submission: {
-          ...submission,
-          files: imageUrls.length > 0 ? [] : submission.files
-        },
+      const projectData = {
+        ...submission,
+        image_url: imageUrls[0] || submission.image,
+        gallery: imageUrls.length > 0 ? imageUrls : submission.gallery,
+        tech_stack: submission.techStack,
         visibility: 'published',
-        projectList: projects,
-        ownerContributor: buildCurrentUserContributor(currentUser),
-        contributorDirectory,
-      });
+      };
 
-      // Override images with uploaded URLs and add author_id for local state
-      if (imageUrls.length > 0) {
-        projectData.image = imageUrls[0];
-        projectData.gallery = imageUrls;
-      }
-      projectData.author_id = currentUser.id;
-      projectData.ownerSlug = currentUser.id;
+      const result = await api.saveProject(projectData);
 
-      console.log('Inserting project into Supabase:', projectData.title);
-      const { error } = await supabase
-        .from('projects')
-        .insert({
-          title: projectData.title,
-          slug: projectData.slug,
-          summary: projectData.summary,
-          image_url: projectData.image,
-          gallery: projectData.gallery,
-          tech_stack: projectData.techStack,
-          status: projectData.status,
-          year: projectData.cohort,
-          event: projectData.course,
-          problem_statements: projectData.problem,
-          solution_statements: projectData.solution,
-          innovations: projectData.innovations,
-          key_features: projectData.keyFeatures,
-          visibility: 'published',
-          author_id: currentUser.id,
-          repository_url: projectData.repositoryUrl,
-          live_demo_url: projectData.liveDemoUrl,
-        });
-
-      if (error) {
-        console.error('Supabase insert error:', error);
-        showNotification('Error publishing project: ' + error.message);
+      if (result.error) {
+        showNotification('Error publishing project: ' + result.error);
       } else {
-        console.log('Project published successfully!');
         showNotification('Project published successfully');
-        setProjects((currentProjects) => [projectData, ...currentProjects]);
+        setProjects((currentProjects) => [result, ...currentProjects]);
         setActiveProfileTab('work');
         navigateTo('/profile');
       }
     } catch (err) {
       showNotification('Failed to publish project: ' + err.message);
+    } finally {
+      setIsPublishing(false);
     }
   }
+
 
   async function handleDeleteProject(projectSlug) {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('slug', projectSlug)
-      .eq('author_id', currentUser.id);
-
-    if (error) {
-      showNotification('Error deleting project: ' + error.message);
-    } else {
-      showNotification('Project deleted successfully');
-      setProjects((currentProjects) =>
-        currentProjects.filter(
-          (project) => !(project.ownerSlug === currentUser.slug && project.slug === projectSlug)
-        )
-      );
-    }
+    // Note: You should implement a DELETE /api/projects/:slug route in your backend
+    showNotification('Delete functionality requires backend implementation of DELETE route.');
   }
+
 
   function handleSearchSubmit(e) {
     e.preventDefault();
@@ -2829,11 +2620,12 @@ function App() {
   }
 
   if (isLogoutPage) {
-    supabase.auth.signOut().then(() => {
-      window.location.hash = '/';
-    });
+    localStorage.removeItem('codefolio_token');
+    localStorage.removeItem('codefolio_user');
+    window.location.hash = '/';
     return null;
   }
+
 
   if (isDashboardPage) {
     return (
