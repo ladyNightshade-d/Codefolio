@@ -195,6 +195,13 @@ app.get('/api/projects/:slug', async (req, res) => {
 app.post('/api/projects', authenticateToken, async (req, res) => {
   const p = req.body;
   try {
+    // Auto-generate slug from title if not provided
+    const baseSlug = (p.slug || p.title || 'project')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const slug = `${baseSlug}-${Date.now().toString(36)}`;
+
     const result = await query(`
       INSERT INTO projects (
         title, slug, summary, image_url, gallery, tech_stack, status, 
@@ -210,13 +217,15 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
         visibility = EXCLUDED.visibility
       RETURNING *
     `, [
-      p.title, p.slug, p.summary, p.image_url, p.gallery, p.tech_stack, p.status,
+      p.title, slug, p.summary, p.image_url, p.gallery, p.tech_stack, p.status,
       p.year, p.event, p.problem_statements, p.solution_statements, p.innovations,
       p.key_features, p.visibility, req.user.id, p.repository_url, p.live_demo_url
     ]);
     res.json(result.rows[0]);
   } catch (error) {
+    console.error('POST /api/projects error:', error.message, '| body:', JSON.stringify(req.body));
     res.status(500).json({ error: error.message });
+
   }
 });
 
