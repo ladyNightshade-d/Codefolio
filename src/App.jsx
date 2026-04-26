@@ -1007,7 +1007,7 @@ function buildContributorDirectory(currentUserProfile, allContributors = []) {
 }
 
 function buildProjectStack(techStack) {
-  return techStack.join(' - ');
+  return (techStack || []).join(' - ');
 }
 
 function slugify(value) {
