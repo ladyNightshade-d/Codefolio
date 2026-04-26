@@ -31,19 +31,33 @@ export const sendVerificationCode = async (email) => {
 
     console.log('OTP saved to database successfully');
 
+    const firstLetter = cleanEmail.charAt(0).toUpperCase();
     const spacedCode = code.split('').join(' ');
 
     const htmlContent = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #111; max-width: 600px; margin: 0 auto; padding: 60px 20px; background: #ffffff;">
         <div style="margin-bottom: 40px;">
-          <div style="font-family: ui-monospace, monospace; font-weight: 800; font-size: 32px; color: #000000ff; letter-spacing: -0.05em;">&lt;/&gt;</div>
+          <div style="font-family: ui-monospace, monospace; font-weight: 800; font-size: 32px; color: #000; letter-spacing: -0.05em;">&lt;/&gt;</div>
         </div>
-        <h1 style="font-size: 26px; font-weight: 700; margin-bottom: 48px; letter-spacing: -0.02em;">Your verification code is</h1>
-        <div style="font-size: 44px; font-weight: 700; letter-spacing: 12px; margin-bottom: 54px; color: #111; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+        
+        <div style="width: 56px; height: 56px; background-color: #e84d7d; color: #ffffff; border-radius: 50%; margin: 0 auto 40px auto; font-size: 24px; line-height: 56px; text-align: center; font-weight: normal;">
+          ${firstLetter}
+        </div>
+
+        <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 48px; letter-spacing: -0.02em;">Your verification code is</h1>
+        
+        <div style="font-size: 40px; font-weight: 700; letter-spacing: 16px; margin-bottom: 54px; color: #111; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; padding-left: 16px;">
           ${spacedCode}
         </div>
-        <p style="color: #6a6a6a; font-size: 15px; line-height: 1.6; max-width: 400px; margin: 0 auto 60px;">
-          This code will expire in 5 minutes.
+        
+        <p style="color: #6a6a6a; font-size: 14px; line-height: 1.6; max-width: 400px; margin: 0 auto 60px;">
+          This code will expire in 5 minutes. If you didn't request this,<br/>you can safely ignore this email. Need help? <a href="#" style="color: #e84d7d; text-decoration: none;">Contact<br/>support.</a>
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #f0f0f0; margin-bottom: 30px;" />
+        
+        <p style="color: #a0a0a0; font-size: 12px;">
+          Korvex Technologies. &bull; Kigali, Rwanda
         </p>
       </div>
     `;
