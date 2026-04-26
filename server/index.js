@@ -111,6 +111,48 @@ app.get('/api/ai/history', authenticateToken, async (req, res) => {
   res.json(result.rows);
 });
 
+// Chat History by userId (for loading a specific chat)
+app.get('/api/ai/history/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { query: searchQuery } = req.query;
+    let result;
+    if (searchQuery) {
+      result = await query(
+        `SELECT * FROM chat_messages
+         WHERE user_id = $1 AND content ILIKE $2
+         ORDER BY created_at ASC`,
+        [req.user.id, `%${searchQuery}%`]
+      );
+    } else {
+      result = await query(
+        'SELECT * FROM chat_messages WHERE user_id = $1 ORDER BY created_at ASC',
+        [req.user.id]
+      );
+    }
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Recent Chat Titles
+app.get('/api/ai/recent/:userId', authenticateToken, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT DISTINCT ON (content) content
+       FROM chat_messages
+       WHERE user_id = $1 AND role = 'user'
+       ORDER BY content, created_at DESC
+       LIMIT 10`,
+      [req.user.id]
+    );
+    res.json(result.rows.map(r => r.content));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Projects Endpoints
 app.get('/api/projects', async (req, res) => {
   try {
