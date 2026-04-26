@@ -205,7 +205,7 @@ function ChatWithAiPage({ toAppHref, profile }) {
         headers: { 'Authorization': `Bearer ${token}` },
       })
         .then(res => res.json())
-        .then(data => setRecentChats(data))
+        .then(data => setRecentChats(Array.isArray(data) ? data : []))
         .catch(err => console.error('Error fetching recents:', err));
     }
 
@@ -248,7 +248,7 @@ function ChatWithAiPage({ toAppHref, profile }) {
           });
           if (recentsRes.ok) {
             const recentsData = await recentsRes.json();
-            setRecentChats(recentsData);
+            setRecentChats(Array.isArray(recentsData) ? recentsData : []);
           }
         }
       } else {

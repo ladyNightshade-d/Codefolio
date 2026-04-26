@@ -139,18 +139,23 @@ app.get('/api/ai/history/:userId', authenticateToken, async (req, res) => {
 app.get('/api/ai/recent/:userId', authenticateToken, async (req, res) => {
   try {
     const result = await query(
-      `SELECT DISTINCT ON (content) content
-       FROM chat_messages
-       WHERE user_id = $1 AND role = 'user'
-       ORDER BY content, created_at DESC
+      `SELECT content FROM (
+         SELECT DISTINCT ON (content) content, created_at
+         FROM chat_messages
+         WHERE user_id = $1 AND role = 'user'
+         ORDER BY content, created_at DESC
+       ) sub
+       ORDER BY created_at DESC
        LIMIT 10`,
       [req.user.id]
     );
     res.json(result.rows.map(r => r.content));
   } catch (error) {
+    console.error('Recent chats error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // Projects Endpoints
