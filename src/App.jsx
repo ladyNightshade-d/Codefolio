@@ -1120,9 +1120,6 @@ function createSeedProjectRecord(seedProject, ownerContributor) {
 const initialProjectRecords = projectRecords.map((project, index) =>
   normalizeProjectRecord(project, index)
 );
-const initialCurrentUserProjects = currentUserProjectSeeds.map((project) =>
-  createSeedProjectRecord(project, buildCurrentUserContributor(currentUserSeed))
-);
 
 function getVisibleShowcaseCollections(activePlatform, activeSort, collections = []) {
   const filteredCollections = collections.filter(
