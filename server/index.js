@@ -193,7 +193,9 @@ app.get('/api/projects/:slug', async (req, res) => {
 
 // Create/Update Project
 app.post('/api/projects', authenticateToken, async (req, res) => {
-  const p = req.body;
+  // Frontend sends data nested under formData — merge it with top-level fields
+  const { formData, ...topLevel } = req.body;
+  const p = { ...topLevel, ...(formData || {}) };
   try {
     // Auto-generate slug from title if not provided
     const baseSlug = (p.slug || p.title || 'project')
@@ -217,9 +219,23 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
         visibility = EXCLUDED.visibility
       RETURNING *
     `, [
-      p.title, slug, p.summary, p.image_url, p.gallery, p.tech_stack, p.status,
-      p.year, p.event, p.problem_statements, p.solution_statements, p.innovations,
-      p.key_features, p.visibility, req.user.id, p.repository_url, p.live_demo_url
+      p.title,
+      slug,
+      p.summary,
+      p.image_url,
+      p.gallery,
+      p.tech_stack || p.techStack,                          // camelCase fallback
+      p.status,
+      p.year,
+      p.event,
+      p.problem_statements || p.problemText,                // frontend uses problemText
+      p.solution_statements || p.solutionText,              // frontend uses solutionText
+      JSON.stringify(p.innovations || []),
+      JSON.stringify(p.keyFeatures || p.key_features || []),
+      p.visibility,
+      req.user.id,
+      p.repository_url || p.repositoryUrl,
+      p.live_demo_url || p.liveDemoUrl,
     ]);
     res.json(result.rows[0]);
   } catch (error) {
