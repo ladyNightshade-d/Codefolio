@@ -2333,12 +2333,17 @@ function App() {
         if (dbContributors) {
           setAllContributors(dbContributors.map(c => ({
             ...c,
-            slug: c.id, 
-            image: c.avatar_url,
+            slug: c.id,
+            image: c.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || 'U')}&background=random&color=fff&rounded=true`,
+            role: c.role || 'Contributor',
+            location: c.location || '',
+            skills: Array.isArray(c.skills) ? c.skills : (c.skills ? [c.skills] : []),
+            specialties: Array.isArray(c.specialties) ? c.specialties : (c.specialties ? [c.specialties] : []),
             contact: {
-              email: c.email,
+              email: c.contact_email || c.email,
               github: c.github_url,
-              linkedin: c.linkedin_url
+              linkedin: c.linkedin_url,
+              website: c.website_url,
             }
           })));
         }
