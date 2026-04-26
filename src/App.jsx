@@ -824,35 +824,31 @@ const defaultNotificationPreferences = {
   newProjectsInYourStack: false,
 };
 
-const currentUserSeed = {
-  slug: 'manzi-shimwa-yves-seraphin',
-  username: 'manzi-shimwa-yves-seraphin',
-  accountEmail: 'myvesseraphin@gmail.com',
-  name: 'MANZI SHIMWA Yves Seraphin',
-  role: 'Senior Product Engineer',
-  location: 'Kigali, Rwanda',
-  headline: 'builds polished web products grounded in clean systems thinking.',
-  bio: 'Senior Developer specializing in clean architecture and performant web applications. Passionate about design systems and user experience.',
-  image: '/me.png',
-  skills: ['React', 'Node.js', 'Design Systems'],
-  specialties: ['web', 'ai'],
+const emptyGuestUser = {
+  id: null,
+  slug: null,
+  username: null,
+  accountEmail: null,
+  name: null,
+  role: null,
+  location: null,
+  headline: null,
+  bio: null,
+  image: null,
+  avatar_url: null,
+  skills: [],
+  specialties: [],
   contact: {
-    email: 'yves@gmail.com',
-    phone: '+250 78-000-0000',
-    website: 'https://yves.dev',
+    email: '',
+    phone: '',
+    website: '',
     github: '',
     linkedin: '',
   },
-  education: [
-    {
-      id: 'education-1',
-      title: 'Rwanda Coding Academy',
-      meta: 'Software Engineering',
-      period: '2021 - Present',
-    },
-  ],
+  education: [],
   notifications: defaultNotificationPreferences,
 };
+
 
 const currentUserProjectSeeds = [
   {
@@ -2243,10 +2239,14 @@ function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedUser = localStorage.getItem('codefolio_user');
-      return savedUser ? JSON.parse(savedUser) : currentUserSeed;
+      const token = localStorage.getItem('codefolio_token');
+      if (savedUser && token) {
+        return JSON.parse(savedUser);
+      }
     }
-    return currentUserSeed;
+    return emptyGuestUser;
   });
+
   const [projects, setProjects] = useState([]);
   const [allContributors, setAllContributors] = useState([]);
   const [allShowcases, setAllShowcases] = useState([]);
@@ -2351,9 +2351,10 @@ function App() {
 
 
     // User session data refresh (legacy)
-    if (currentUser && currentUser.id && currentUser.id !== currentUserSeed.id) {
+    if (currentUser && currentUser.id && currentUser.id !== emptyGuestUser.id) {
        // Profile and projects are now largely managed via API
     }
+
 
   }, [pathname, currentUser?.id]);
 
@@ -2626,6 +2627,28 @@ function App() {
     return null;
   }
 
+
+  // Authentication guard — redirect to login if not signed in
+  const isAuthenticated = Boolean(
+    localStorage.getItem('codefolio_token') && currentUser?.id
+  );
+
+  const isPrivatePage =
+    isDashboardPage ||
+    isDashboardChatPage ||
+    isProfilePage ||
+    isProfileSettingsPage ||
+    isProfileUploadPage ||
+    isDashboardShowcasesPage ||
+    isDashboardContributorsPage;
+
+  if (isPrivatePage && !isAuthenticated) {
+    // Redirect to login
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    }
+    return null;
+  }
 
   if (isDashboardPage) {
     return (
