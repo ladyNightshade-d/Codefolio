@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendVerificationCode = async (email) => {
+export const sendVerificationCode = async (email, baseUrl = '') => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
   const cleanEmail = email.trim().toLowerCase();
@@ -31,7 +31,34 @@ export const sendVerificationCode = async (email) => {
 
     console.log('OTP saved to database successfully');
 
-    const firstLetter = cleanEmail.charAt(0).toUpperCase();
+    let avatarHtml = '';
+    try {
+      const userResult = await query('SELECT avatar_url FROM users WHERE email = $1', [cleanEmail]);
+      const user = userResult.rows[0];
+      if (user && user.avatar_url && !user.avatar_url.includes('ui-avatars.com')) {
+        let absoluteAvatarUrl = user.avatar_url;
+        if (absoluteAvatarUrl.startsWith('/')) {
+          absoluteAvatarUrl = baseUrl + absoluteAvatarUrl;
+        }
+        avatarHtml = `
+        <div style="margin: 0 auto 40px auto; text-align: center;">
+          <img src="${absoluteAvatarUrl}" alt="Profile Picture" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto;" />
+        </div>
+        `;
+      }
+    } catch (e) {
+      console.error('Error fetching user avatar for email:', e);
+    }
+
+    if (!avatarHtml) {
+      const firstLetter = cleanEmail.charAt(0).toUpperCase();
+      avatarHtml = `
+        <div style="width: 56px; height: 56px; background-color: #e84d7d; color: #ffffff; border-radius: 50%; margin: 0 auto 40px auto; font-size: 24px; line-height: 56px; text-align: center; font-weight: normal;">
+          ${firstLetter}
+        </div>
+      `;
+    }
+
     const spacedCode = code.split('').join(' ');
 
     const htmlContent = `
@@ -40,9 +67,7 @@ export const sendVerificationCode = async (email) => {
           <div style="font-family: ui-monospace, monospace; font-weight: 800; font-size: 32px; color: #000; letter-spacing: -0.05em;">&lt;/&gt;</div>
         </div>
         
-        <div style="width: 56px; height: 56px; background-color: #e84d7d; color: #ffffff; border-radius: 50%; margin: 0 auto 40px auto; font-size: 24px; line-height: 56px; text-align: center; font-weight: normal;">
-          ${firstLetter}
-        </div>
+        ${avatarHtml}
 
         <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 48px; letter-spacing: -0.02em;">Your verification code is</h1>
         

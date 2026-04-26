@@ -229,7 +229,8 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
 // Auth Routes
 app.post('/api/auth/send-code', async (req, res) => {
   const { email } = req.body;
-  const result = await sendVerificationCode(email);
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const result = await sendVerificationCode(email, baseUrl);
   if (result.success) res.json({ message: 'Code sent' });
   else res.status(500).json(result);
 });
