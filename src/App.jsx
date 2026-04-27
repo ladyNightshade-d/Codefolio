@@ -25,11 +25,11 @@ function getCurrentPath() {
 }
 
 function toAppHref(path) {
-  if (!path) return '/';
-  // If it already has a hash, keep it (legacy)
-  if (path.startsWith('/#')) return path;
-  // Otherwise, return a clean path (no hash)
-  return path.startsWith('/') ? path : `/${path}`;
+  if (!path || path === '/') return '#/';
+  if (path.startsWith('#/')) return path;
+  if (path.startsWith('/#/')) return path.slice(1);
+  const normalized = path.startsWith('/') ? path.slice(1) : path;
+  return `#/${normalized}`;
 }
 const navigationItems = [
   { label: 'Explore', href: '/' },
@@ -37,7 +37,7 @@ const navigationItems = [
   { label: 'Contributors', href: '/contributors' },
 ];
 
-const homeFilterItems = ['Popular', 'Recent', 'Followed'];
+const homeFilterItems = ['All projects', 'React', 'Node.js', 'Python'];
 const footerItems = [
   { label: 'Terms of Use', href: '/terms' },
   { label: 'Privacy Policy', href: '/privacy' },
@@ -1449,7 +1449,7 @@ function Header({ activePath, isSearchActive, searchTerm, onSearchChange, onSear
     <header className={`site-header ${isSearchActive ? 'site-header--scrolled' : ''}`}>
       <div className="container site-header__inner">
         <div className="site-header__left">
-          <a className="brand" href="/" aria-label="Codefolio home">
+          <a className="brand" href="#/" aria-label="Codefolio home">
             <CodeMark />
             <span>Codefolio</span>
           </a>
@@ -2302,68 +2302,10 @@ function App() {
       sessionStorage.setItem('welcome-shown', 'true');
     }
 
-    // Initial fetch for public projects and contributors
-    const fetchPublicData = async () => {
-      try {
-        const [projectsRes, contributorsRes, showcasesRes] = await Promise.all([
-          fetch('http://localhost:5000/api/projects'),
-          fetch('http://localhost:5000/api/contributors'),
-          fetch('http://localhost:5000/api/showcases')
-        ]);
-
-        if (projectsRes.ok) {
-          const dbProjects = await projectsRes.json();
-          setProjects(dbProjects.map(p => ({
-            ...p,
-            ownerSlug: p.author_id,
-            ownerUsername: p.users?.username,
-            techStack: p.tech_stack,
-            image: p.image_url,
-            gallery: p.gallery,
-            cohort: p.year,
-            course: p.event,
-            problem: p.problem_statements,
-            solution: p.solution_statements,
-            innovations: p.innovations,
-            keyFeatures: p.key_features,
-            repositoryUrl: p.repository_url,
-            liveDemoUrl: p.live_demo_url,
-            team: [{ slug: p.author_id, name: p.users?.name || 'Unknown', image: p.users?.avatar_url, role: 'Lead' }]
-          })));
-        }
-
-        if (contributorsRes.ok) {
-          const dbContributors = await contributorsRes.json();
-          setAllContributors(dbContributors.map(c => ({
-            ...c,
-            slug: c.id, // Using ID as fallback slug for database users
-            image: c.avatar_url,
-            contact: {
-              email: c.email,
-              github: c.github_url,
-              linkedin: c.linkedin_url
-            }
-          })));
-        }
-
-        if (showcasesRes.ok) {
-          const dbShowcases = await showcasesRes.json();
-          // Map backend data to frontend structure
-          const mappedShowcases = dbShowcases.map(s => ({
-            ...s,
-            author: s.users?.name || 'Anonymous',
-            image: s.image_url || s.image,
-            avatar: s.avatar_url || s.avatar,
-            fallbackPreview: s.fallback_preview || s.fallbackPreview
-          }));
-          setAllShowcases(mappedShowcases);
-        }
-      } catch (error) {
-        console.error('Fetch error:', error);
-      }
-    };
-
-    fetchPublicData();
+    // Use static data instead of fetching from API
+    setProjects(initialProjectRecords);
+    setAllContributors(contributors);
+    setAllShowcases(showcaseCollections);
 
     // Custom Session Initializer
     if (currentUser && (currentUser.id || currentUser.accountEmail || currentUser.email) && currentUser.id !== currentUserSeed.id) {

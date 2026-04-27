@@ -238,8 +238,8 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
           )}
 
           <p className="login-form__legal">
-            By clicking Continue, you agree to our <a href="/#/terms">Terms of Use</a> and{' '}
-            <a href="/#/privacy">Privacy Policy</a>
+            By clicking Continue, you agree to our <a href="#/terms">Terms of Use</a> and{' '}
+            <a href="#/privacy">Privacy Policy</a>
           </p>
         </div>
       </div>
