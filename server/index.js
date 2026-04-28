@@ -9,8 +9,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import multer from 'multer';
 
 import { query } from './db.js';
-import { authenticateToken } from './auth_middleware.js';
+import { authenticateToken, generateToken } from './auth_middleware.js';
 import { sendVerificationCode, verifyCode } from './auth.js';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 dotenv.config();
 
@@ -46,7 +48,54 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(passport.initialize());
 app.use('/uploads', express.static(uploadDir));
+
+// Passport Google Strategy
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/api/auth/google/callback",
+    scope: ['profile', 'email']
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails[0].value;
+      const googleId = profile.id;
+      const name = profile.displayName;
+      const avatarUrl = profile.photos[0]?.value;
+
+      // Check if user exists by google_id
+      let result = await query('SELECT * FROM users WHERE google_id = $1', [googleId]);
+      let user = result.rows[0];
+
+      if (!user) {
+        // Check if user exists by email (to link account)
+        result = await query('SELECT * FROM users WHERE email = $1', [email]);
+        user = result.rows[0];
+
+        if (user) {
+          // Link google_id to existing account
+          await query('UPDATE users SET google_id = $1, avatar_url = COALESCE(avatar_url, $2) WHERE id = $3', [googleId, avatarUrl, user.id]);
+          user.google_id = googleId;
+        } else {
+          // Create new user
+          const username = email.split('@')[0].toLowerCase() + '-' + Math.floor(Math.random() * 1000);
+          const newUser = await query(
+            `INSERT INTO users (email, name, username, avatar_url, google_id) 
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [email, name, username, avatarUrl, googleId]
+          );
+          user = newUser.rows[0];
+        }
+      }
+
+      return done(null, user);
+    } catch (error) {
+      return done(error, null);
+    }
+  }
+));
 
 // API Routes
 app.get('/api/health', (req, res) => {
@@ -350,6 +399,25 @@ app.post('/api/auth/verify-code', async (req, res) => {
   if (result.success) res.json(result);
   else res.status(400).json(result);
 });
+
+// Google Auth Routes
+app.get('/api/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
+
+app.get('/api/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  (req, res) => {
+    // Successful authentication
+    const token = generateToken(req.user);
+    const userJson = encodeURIComponent(JSON.stringify(req.user));
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    
+    // Redirect to frontend with token and user data
+    // Using hash routing compatibility
+    res.redirect(`${frontendUrl}/#/auth-callback?token=${token}&user=${userJson}`);
+  }
+);
 
 // Production setup
 if (process.env.NODE_ENV === 'production') {

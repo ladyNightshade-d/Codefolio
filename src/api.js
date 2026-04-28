@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+export const GOOGLE_AUTH_URL = `${API_BASE_URL}/auth/google`;
 
 
 const getHeaders = () => {

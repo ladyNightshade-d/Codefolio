@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from './api';
+import { api, GOOGLE_AUTH_URL } from './api';
 import './login.css';
 
 function AuthCodeMark() {
@@ -119,7 +119,13 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
   }
 
   function handleGoogleLogin() {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    // If GOOGLE_AUTH_URL is a relative path, we need to make it absolute for window.location.href
+    // especially if the backend is on a different port in dev
+    const targetUrl = GOOGLE_AUTH_URL.startsWith('http') 
+      ? GOOGLE_AUTH_URL 
+      : `${window.location.origin}${GOOGLE_AUTH_URL}`;
+    
+    window.location.href = targetUrl;
   }
 
   function handleEditEmail() {

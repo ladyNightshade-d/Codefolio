@@ -2283,6 +2283,37 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // Handle Google Auth Callback
+    if (pathname === '/auth-callback') {
+      const params = new URLSearchParams(window.location.hash.split('?')[1]);
+      const token = params.get('token');
+      const userJson = params.get('user');
+
+      if (token && userJson) {
+        try {
+          const user = JSON.parse(decodeURIComponent(userJson));
+          const mappedUser = {
+            ...user,
+            accountEmail: user.email,
+            image: user.avatar_url
+          };
+          
+          localStorage.setItem('codefolio_token', token);
+          localStorage.setItem('codefolio_user', JSON.stringify(mappedUser));
+          setCurrentUser(mappedUser);
+          
+          showNotification('Successfully signed in with Google');
+          window.location.hash = '#/dashboard';
+        } catch (error) {
+          console.error('Error parsing auth callback data:', error);
+          showNotification('Authentication failed');
+          window.location.hash = '#/login';
+        }
+      }
+    }
+  }, [pathname]);
+
+  useEffect(() => {
     // Show a welcome notification if it's the first visit
     if (pathname === '/' && !sessionStorage.getItem('welcome-shown')) {
       showNotification('Welcome to Codefolio! Discover and showcase engineering projects.');
