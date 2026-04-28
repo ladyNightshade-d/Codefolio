@@ -2885,10 +2885,15 @@ function App() {
                 const projectIds = Array.from(formData.getAll('projects'));
                 
                 showNotification('Creating collection...');
+                
+                const selectedProjects = currentUserProjects.filter(p => projectIds.includes(p.id.toString()));
+                const firstProjectImage = selectedProjects[0]?.image || '/12.png';
+
                 const res = await api.createShowcase({
                   title: formData.get('title'),
                   description: formData.get('description'),
                   platform: formData.get('platform'),
+                  image_url: firstProjectImage,
                   project_ids: projectIds
                 });
                 

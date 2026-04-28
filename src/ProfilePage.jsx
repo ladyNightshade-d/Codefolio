@@ -478,17 +478,6 @@ function ProfilePage({
     if (!collections.length) {
       return (
         <div className="profile-page__collections-container">
-          <div className="profile-page__projects-actions">
-            <button
-              className="profile-page__add-project-button profile-page__add-project-button--collection"
-              type="button"
-              onClick={onCreateCollection}
-              aria-label="Create collection"
-              title="Create collection"
-            >
-              <PlusIcon />
-            </button>
-          </div>
           {renderEmptyState({
             title: 'No collections yet',
             copy: 'Group your projects into collections to showcase them together.',
@@ -513,31 +502,34 @@ function ProfilePage({
           </button>
         </div>
         <div className="profile-page__shots-grid profile-page__shots-grid--projects">
-          {collections.map((collection) => (
-            <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--project">
-              <a
-                className="profile-page__shot-link"
-                href="#"
-                onClick={(e) => e.preventDefault()}
-              >
-                <div className="profile-page__shot-media">
-                  <img
-                    className="profile-page__shot-image"
-                    src={collection.items[0]?.image || '/12.png'}
-                    alt={collection.name}
-                    loading="lazy"
-                  />
-                </div>
-              </a>
+          {collections.map((collection) => {
+            const firstProject = collection.items[0];
+            return (
+              <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--project">
+                <a
+                  className="profile-page__shot-link"
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <div className="profile-page__shot-media">
+                    <img
+                      className="profile-page__shot-image"
+                      src={firstProject?.image || '/12.png'}
+                      alt={collection.name}
+                      loading="lazy"
+                    />
+                  </div>
+                </a>
 
-              <div className="profile-page__shot-footer profile-page__shot-footer--project">
-                <div className="profile-page__shot-copy--project">
-                  <h3 className="profile-page__shot-title--compact">{collection.name}</h3>
-                  <p className="profile-page__shot-meta">{collection.items.length} projects</p>
+                <div className="profile-page__shot-footer profile-page__shot-footer--project">
+                  <div className="profile-page__shot-copy--project">
+                    <h3 className="profile-page__shot-title--compact">{collection.name}</h3>
+                    <p className="profile-page__shot-meta">{collection.items.length} projects</p>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     );
