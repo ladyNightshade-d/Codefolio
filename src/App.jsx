@@ -2709,18 +2709,6 @@ function App() {
     return null;
   }
 
-  if (isInitialLoading) {
-    return (
-      <div className="global-loading-screen">
-        <div className="global-loading-screen__content">
-          <div className="global-loading-screen__logo">&lt;/&gt;</div>
-          <div className="global-loading-screen__spinner"></div>
-          <p className="global-loading-screen__text">Loading Codefolio...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (isDashboardPage) {
     return (
       <div className="page-shell page-shell--dashboard">
@@ -2911,12 +2899,6 @@ function App() {
             ]}
             actions={[{ label: 'support@codefolio.dev', href: 'mailto:support@codefolio.dev' }]}
           />
-        ) : isProjectRoute ? (
-          <div className="page-loading-skeleton">
-            <div className="container">
-              <div style={{ height: '400px', background: '#f5f5f5', borderRadius: '12px', marginTop: '40px', animate: 'pulse 2s infinite' }}></div>
-            </div>
-          </div>
         ) : (
           <LandingPage projects={featuredProjectCards} toAppHref={toAppHref} />
         )}
