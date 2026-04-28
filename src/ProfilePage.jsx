@@ -333,7 +333,6 @@ function ProfilePage({
       ),
     [projects]
   );
-  const collections = useMemo(() => buildCollections(publishedProjects), [publishedProjects]);
 
   function renderEmptyState({
     title,
