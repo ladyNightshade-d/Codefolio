@@ -2284,7 +2284,7 @@ function App() {
 
   useEffect(() => {
     // Handle Google Auth Callback
-    if (pathname === '/auth-callback') {
+    if (pathname.startsWith('/auth-callback')) {
       const params = new URLSearchParams(window.location.hash.split('?')[1]);
       const token = params.get('token');
       const userJson = params.get('user');
