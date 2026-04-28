@@ -54,6 +54,14 @@ export const api = {
     return res.json();
   },
 
+  deleteProject: async (slug) => {
+    const res = await fetch(`${API_BASE_URL}/projects/${slug}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    return res.json();
+  },
+
   // Profile
   updateProfile: async (profileData) => {
     const res = await fetch(`${API_BASE_URL}/profile`, {

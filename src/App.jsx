@@ -2549,10 +2549,23 @@ function App() {
 
 
   async function handleDeleteProject(projectSlug) {
-    // Note: You should implement a DELETE /api/projects/:slug route in your backend
-    showNotification('Delete functionality requires backend implementation of DELETE route.');
+    try {
+      const result = await api.deleteProject(projectSlug);
+      if (result.error) {
+        showNotification('Error deleting project: ' + result.error);
+      } else {
+        showNotification('Project deleted successfully');
+        setProjects(current => current.filter(p => p.slug !== projectSlug));
+      }
+    } catch (err) {
+      showNotification('Failed to delete project: ' + err.message);
+    }
   }
 
+
+  function handleEditProject(projectSlug) {
+    navigateTo(`/profile/edit/${projectSlug}`);
+  }
 
   function handleSearchSubmit(e) {
     e.preventDefault();
@@ -2601,7 +2614,12 @@ function App() {
   const isProfileUploadDetailsPage = pathname === '/profile/upload/details';
   const isProfileUploadPage = isProfileUploadEntryPage || isProfileUploadDetailsPage;
   
-  const isProfileAreaPage = isProfilePage || isProfileSettingsPage;
+  const editProjectMatch = pathname.match(/^\/profile\/edit\/([^/]+)$/);
+  const editProjectSlug = editProjectMatch ? editProjectMatch[1] : null;
+  const isProfileEditPage = Boolean(editProjectSlug);
+  const editProjectData = isProfileEditPage ? currentUserProjects.find(p => p.slug === editProjectSlug) : null;
+  
+  const isProfileAreaPage = isProfilePage || isProfileSettingsPage || isProfileEditPage;
   
   // Support both /projects/:slug and /:username/:slug
   const projectMatch = pathname.match(/^\/projects\/([^/]+)$/) || 
@@ -2702,12 +2720,13 @@ function App() {
     );
   }
 
-  if (isProfileUploadPage) {
+  if (isProfileUploadPage || isProfileEditPage) {
     return (
       <div className="page-shell page-shell--upload">
         <main>
           <UploadShotPage
-            mode={isProfileUploadDetailsPage ? 'details' : 'upload'}
+            mode={(isProfileUploadDetailsPage || isProfileEditPage) ? 'details' : 'upload'}
+            initialData={isProfileEditPage ? editProjectData : null}
             toAppHref={toAppHref}
             contributorDirectory={contributorDirectory}
             onSaveDraft={handleSaveDraft}
@@ -2801,6 +2820,7 @@ function App() {
             activeTab={activeProfileTab}
             onTabChange={setActiveProfileTab}
             onDeleteProject={handleDeleteProject}
+            onEditProject={handleEditProject}
           />
         ) : isContributorProfilePage ? (
           <PublicProfilePage

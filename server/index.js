@@ -249,6 +249,25 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
   }
 });
 
+// Delete Project
+app.delete('/api/projects/:slug', authenticateToken, async (req, res) => {
+  try {
+    const result = await query(
+      'DELETE FROM projects WHERE slug = $1 AND author_id = $2 RETURNING *',
+      [req.params.slug, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found or unauthorized' });
+    }
+
+    res.json({ message: 'Project deleted successfully', project: result.rows[0] });
+  } catch (error) {
+    console.error('DELETE /api/projects error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // File Upload Endpoint
 app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });

@@ -259,6 +259,7 @@ function ProfilePage({
   activeTab = 'work',
   onTabChange,
   onDeleteProject,
+  onEditProject,
 }) {
   const menuRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -393,6 +394,17 @@ function ProfilePage({
 
               {openProjectMenuSlug === project.slug ? (
                 <div className="profile-page__project-menu-dropdown" role="menu" aria-label={`${project.title} actions`}>
+                  <button
+                    className="profile-page__project-menu-item"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenProjectMenuSlug(null);
+                      onEditProject?.(project.slug);
+                    }}
+                  >
+                    Edit
+                  </button>
                   <button
                     className="profile-page__project-menu-item profile-page__project-menu-item--danger"
                     type="button"
