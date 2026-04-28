@@ -2633,3 +2633,90 @@ select:autofill {
   box-shadow: 0 18px 34px rgba(0,0,0,0.15);
 }
 
+
+/* Refined Collection Modal Enhancements */
+.collection-modal {
+  border-radius: 24px !important; /* Reduced radius */
+}
+
+.collection-modal__select-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.collection-modal__select-container select {
+  width: 100%;
+  appearance: none;
+  background: #fff;
+  cursor: pointer;
+  padding-right: 48px !important;
+}
+
+.collection-modal__select-container .dashboard-icon {
+  position: absolute;
+  right: 18px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  color: #666;
+}
+
+.collection-modal__projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.collection-modal__projects-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.collection-modal__search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 40px;
+  background: #f5f5f5;
+  border-radius: 999px;
+  width: 220px;
+}
+
+.collection-modal__search .dashboard-icon {
+  width: 14px;
+  height: 14px;
+  color: #999;
+}
+
+.collection-modal__search input {
+  border: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  width: 100%;
+  outline: none;
+}
+
+.collection-modal__project-item {
+  background: transparent !important; /* Removed light background */
+  border: none !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  padding: 12px 4px !important;
+}
+
+.collection-modal__project-item:last-child {
+  border-bottom: none !important;
+}
+
+.collection-modal__no-results {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  padding: 20px 0;
+}
+

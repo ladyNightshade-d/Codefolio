@@ -2262,6 +2262,7 @@ function App() {
   const [allContributors, setAllContributors] = useState([]);
   const [allShowcases, setAllShowcases] = useState([]);
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [projectSearchTerm, setProjectSearchTerm] = useState('');
   const [activeProfileTab, setActiveProfileTab] = useState('work');
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -2893,6 +2894,7 @@ function App() {
                 } else {
                   showNotification('Collection created!');
                   setIsCreatingCollection(false);
+                  setProjectSearchTerm('');
                   // Refresh data
                   const dbShowcases = await api.getShowcases();
                   setAllShowcases(dbShowcases.map(s => ({
@@ -2914,21 +2916,41 @@ function App() {
                 </label>
                 <label className="collection-modal__field">
                   <span>Platform</span>
-                  <select name="platform">
-                    <option value="web">Web</option>
-                    <option value="mobile">Mobile</option>
-                  </select>
+                  <div className="collection-modal__select-container">
+                    <select name="platform">
+                      <option value="web">Web Application</option>
+                      <option value="mobile">Mobile Application</option>
+                      <option value="design">UI/UX Design</option>
+                    </select>
+                    <ChevronDownIcon />
+                  </div>
                 </label>
                 
                 <div className="collection-modal__projects">
-                  <h3>Select Projects</h3>
+                  <div className="collection-modal__projects-header">
+                    <h3>Select Projects</h3>
+                    <div className="collection-modal__search">
+                      <SearchIcon />
+                      <input 
+                        type="text" 
+                        placeholder="Search your projects..." 
+                        value={projectSearchTerm}
+                        onChange={(e) => setProjectSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
                   <div className="collection-modal__project-list">
-                    {currentUserProjects.map(p => (
+                    {currentUserProjects
+                      .filter(p => p.title.toLowerCase().includes(projectSearchTerm.toLowerCase()))
+                      .map(p => (
                       <label key={p.id} className="collection-modal__project-item">
                         <input type="checkbox" name="projects" value={p.id} />
                         <span>{p.title}</span>
                       </label>
                     ))}
+                    {currentUserProjects.filter(p => p.title.toLowerCase().includes(projectSearchTerm.toLowerCase())).length === 0 && (
+                      <p className="collection-modal__no-results">No projects found matching your search.</p>
+                    )}
                   </div>
                 </div>
                 
