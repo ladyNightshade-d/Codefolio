@@ -122,5 +122,20 @@ export const api = {
       body: formData
     });
     return res.json();
+  },
+
+  // Showcases
+  getShowcases: async () => {
+    const res = await fetch(`${API_BASE_URL}/showcases`);
+    return res.json();
+  },
+
+  createShowcase: async (showcaseData) => {
+    const res = await fetch(`${API_BASE_URL}/showcases`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(showcaseData)
+    });
+    return res.json();
   }
 };

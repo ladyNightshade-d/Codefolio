@@ -207,6 +207,60 @@ app.get('/api/ai/recent/:userId', authenticateToken, async (req, res) => {
 
 
 
+// Helper to sync team members with latest user data
+async function syncProjectTeam(projects) {
+  const projectList = Array.isArray(projects) ? projects : [projects];
+  
+  // Extract all unique slugs/ids from all projects' team_members
+  const userIdentifiers = new Set();
+  projectList.forEach(p => {
+    const team = Array.isArray(p.team_members) ? p.team_members : [];
+    team.forEach(m => {
+      if (m.slug) userIdentifiers.add(m.slug);
+    });
+    // Also include author
+    if (p.author_id) userIdentifiers.add(p.author_id);
+  });
+
+  if (userIdentifiers.size === 0) return projects;
+
+  // Fetch all these users
+  const usersRes = await query(`
+    SELECT id, username, name, avatar_url 
+    FROM users 
+    WHERE id::text = ANY($1) OR username = ANY($1)
+  `, [Array.from(userIdentifiers)]);
+  
+  const userMap = {};
+  usersRes.rows.forEach(u => {
+    userMap[u.id] = u;
+    userMap[u.username] = u;
+  });
+
+  // Map back to projects
+  const synced = projectList.map(p => {
+    const team = (Array.isArray(p.team_members) ? p.team_members : []).map(m => {
+      const liveUser = userMap[m.slug];
+      if (liveUser) {
+        return { ...m, name: liveUser.name || m.name, image: liveUser.avatar_url || m.image };
+      }
+      return m;
+    });
+
+    // Also update the main 'users' object (author)
+    const liveAuthor = userMap[p.author_id];
+    const syncedUsers = liveAuthor ? {
+      ...p.users,
+      name: liveAuthor.name || p.users?.name,
+      avatar_url: liveAuthor.avatar_url || p.users?.avatar_url
+    } : p.users;
+
+    return { ...p, team_members: team, users: syncedUsers };
+  });
+
+  return Array.isArray(projects) ? synced : synced[0];
+}
+
 // Projects Endpoints
 app.get('/api/projects', async (req, res) => {
   try {
@@ -218,7 +272,8 @@ app.get('/api/projects', async (req, res) => {
       WHERE p.visibility = 'published'
       ORDER BY p.created_at DESC
     `);
-    res.json(result.rows);
+    const synced = await syncProjectTeam(result.rows);
+    res.json(synced);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -234,7 +289,57 @@ app.get('/api/projects/:slug', async (req, res) => {
     `, [req.params.slug]);
 
     if (result.rows.length === 0) return res.status(404).json({ error: 'Project not found' });
-    res.json(result.rows[0]);
+    const synced = await syncProjectTeam(result.rows[0]);
+    res.json(synced);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Showcase Endpoints
+app.get('/api/showcases', async (req, res) => {
+  try {
+    const showcases = await query(`
+      SELECT s.*, u.name as author_name, u.avatar_url as author_avatar
+      FROM showcases s
+      LEFT JOIN users u ON s.author_id = u.id
+      ORDER BY s.created_at DESC
+    `);
+    
+    // For each showcase, fetch its projects
+    const result = await Promise.all(showcases.rows.map(async (s) => {
+      const projects = await query(`
+        SELECT p.* FROM projects p
+        JOIN showcase_projects sp ON p.id = sp.project_id
+        WHERE sp.showcase_id = $1
+      `, [s.id]);
+      return { ...s, projects: projects.rows };
+    }));
+    
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/showcases', authenticateToken, async (req, res) => {
+  const { title, description, image_url, platform, project_ids } = req.body;
+  try {
+    const result = await query(`
+      INSERT INTO showcases (title, description, image_url, platform, author_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `, [title, description, image_url, platform || 'web', req.user.id]);
+    
+    const showcase = result.rows[0];
+    
+    if (project_ids && Array.isArray(project_ids)) {
+      for (const pid of project_ids) {
+        await query(`INSERT INTO showcase_projects (showcase_id, project_id) VALUES ($1, $2)`, [showcase.id, pid]);
+      }
+    }
+    
+    res.json(showcase);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -356,12 +461,14 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
       UPDATE users SET
         name = $1, role = $2, location = $3, headline = $4, bio = $5,
         avatar_url = $6, github_url = $7, linkedin_url = $8, website_url = $9,
-        contact_email = $10, phone_number = $11, skills = $12, specialties = $13
-      WHERE id = $14 RETURNING *
+        contact_email = $10, phone_number = $11, skills = $12, specialties = $13,
+        education = $14
+      WHERE id = $15 RETURNING *
     `, [
       u.name, u.role, u.location, u.headline, u.bio,
       u.avatar_url, u.github_url, u.linkedin_url, u.website_url,
       u.contact_email, u.phone_number, u.skills, u.specialties,
+      JSON.stringify(u.education || []),
       req.user.id
     ]);
     res.json(result.rows[0]);

@@ -976,6 +976,7 @@ function buildCurrentUserContributor(profile) {
       linkedin: profile.contact?.linkedin || '',
       email: profile.contact?.email || profile.accountEmail || '',
     },
+    education: profile.education || [],
   };
 }
 
@@ -1584,7 +1585,7 @@ function LandingPage({ projects, toAppHref }) {
 
           <div className="projects-grid">
             {filteredProjects.length > 0 ? (
-              filteredProjects.map((project) => (
+              filteredProjects.slice(0, 8).map((project) => (
                 <article key={project.title} className="project-card">
                   <a 
                     className="project-card__link" 
@@ -1618,8 +1619,12 @@ function LandingPage({ projects, toAppHref }) {
 
           {filteredProjects.length > 8 && (
             <div className="projects-section__footer">
-              <button className="load-more-button" type="button">
-                <span>Load more</span>
+              <button 
+                className="load-more-button" 
+                type="button"
+                onClick={() => navigateTo('/showcases')}
+              >
+                <span>Explore all showcases</span>
                 <ChevronDownIcon />
               </button>
             </div>
@@ -2340,10 +2345,21 @@ function App() {
     // Initial fetch for public projects and contributors
     const fetchPublicData = async () => {
       try {
-        const [dbProjects, dbContributors] = await Promise.all([
+        const [dbProjects, dbContributors, dbShowcases] = await Promise.all([
           api.getProjects(),
-          api.getContributors()
+          api.getContributors(),
+          api.getShowcases()
         ]);
+        
+        if (Array.isArray(dbShowcases)) {
+          setAllShowcases(dbShowcases.map(s => ({
+            ...s,
+            author: s.author_name || 'Community',
+            avatar: s.author_avatar || '#000',
+            image: s.image_url || '/12.png',
+            imageAlt: s.title
+          })));
+        }
 
         if (dbProjects) {
           // Helper: convert any DB value to an array
