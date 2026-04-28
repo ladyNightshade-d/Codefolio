@@ -2683,9 +2683,9 @@ function App() {
   }
 
 
-  // Authentication guard — redirect to login if not signed in
   const isAuthenticated = Boolean(
-    localStorage.getItem('codefolio_token') && currentUser?.id
+    localStorage.getItem('codefolio_token') && 
+    (currentUser?.id || localStorage.getItem('codefolio_user'))
   );
 
   const isPrivatePage =
