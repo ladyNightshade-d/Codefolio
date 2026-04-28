@@ -7,6 +7,7 @@ const profileTabs = [
   { id: 'reviews', label: 'Reviews' },
   { id: 'recent', label: 'Recent' },
   { id: 'liked', label: 'Liked Shots' },
+  { id: 'collections', label: 'Collections' },
 ];
 
 function LocationPinIcon() {
@@ -260,6 +261,7 @@ function ProfilePage({
   onTabChange,
   onDeleteProject,
   onEditProject,
+  onCreateCollection,
 }) {
   const menuRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -469,50 +471,80 @@ function ProfilePage({
 
   function renderCollections() {
     if (!collections.length) {
-      return renderEmptyState({
-        title: 'No collections yet',
-        copy: 'Add collection names while publishing your work and your projects will be grouped here.',
-      });
+      return (
+        <div className="profile-page__collections-container">
+          <div className="profile-page__projects-actions">
+            <button
+              className="profile-page__add-project-button profile-page__add-project-button--collection"
+              type="button"
+              onClick={onCreateCollection}
+              aria-label="Create collection"
+              title="Create collection"
+            >
+              <PlusIcon />
+            </button>
+          </div>
+          {renderEmptyState({
+            title: 'No collections yet',
+            copy: 'Group your projects into collections to showcase them together.',
+            buttonLabel: 'Create your first collection',
+            buttonHref: '#', // Handled by onClick
+          })}
+        </div>
+      );
     }
 
     return (
-      <div className="profile-page__shots-grid profile-page__shots-grid--collections">
-        {collections.map((collection) => (
-          <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--collection">
-            <div className="profile-page__collection-media" aria-hidden="true">
-              {collection.items.slice(0, 3).map((project, index) => (
-                <img
-                  key={project.slug}
-                  className={`profile-page__collection-image profile-page__collection-image--${index + 1}`}
-                  src={project.image}
-                  alt=""
-                />
-              ))}
-            </div>
-
-            <div className="profile-page__shot-footer">
-              <div className="profile-page__shot-copy">
-                <p className="profile-page__shot-kicker">Curated collection</p>
-                <h3 className="profile-page__shot-title">{collection.name}</h3>
-                <p className="profile-page__shot-summary">
-                  {collection.items.length} saved project{collection.items.length === 1 ? '' : 's'} grouped
-                  together for quick browsing.
-                </p>
+      <div className="profile-page__collections-container">
+        <div className="profile-page__projects-actions">
+          <button
+            className="profile-page__add-project-button profile-page__add-project-button--collection"
+            type="button"
+            onClick={onCreateCollection}
+            aria-label="Create collection"
+            title="Create collection"
+          >
+            <PlusIcon />
+          </button>
+        </div>
+        <div className="profile-page__shots-grid profile-page__shots-grid--collections">
+          {collections.map((collection) => (
+            <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--collection">
+              <div className="profile-page__collection-media" aria-hidden="true">
+                {collection.items.slice(0, 3).map((project, index) => (
+                  <img
+                    key={project.slug}
+                    className={`profile-page__collection-image profile-page__collection-image--${index + 1}`}
+                    src={project.image}
+                    alt=""
+                  />
+                ))}
               </div>
 
-              <div className="profile-page__shot-stats" aria-label={`${collection.name} collection activity`}>
-                <span className="profile-page__shot-stat">
-                  <HeartIcon />
-                  <span>
-                    {formatCompactCount(
-                      collection.items.reduce((total, item) => total + getProjectLikeCount(item), 0)
-                    )}
+              <div className="profile-page__shot-footer">
+                <div className="profile-page__shot-copy">
+                  <p className="profile-page__shot-kicker">Curated collection</p>
+                  <h3 className="profile-page__shot-title">{collection.name}</h3>
+                  <p className="profile-page__shot-summary">
+                    {collection.items.length} saved project{collection.items.length === 1 ? '' : 's'} grouped
+                    together for quick browsing.
+                  </p>
+                </div>
+
+                <div className="profile-page__shot-stats" aria-label={`${collection.name} collection activity`}>
+                  <span className="profile-page__shot-stat">
+                    <HeartIcon />
+                    <span>
+                      {formatCompactCount(
+                        collection.items.reduce((total, item) => total + getProjectLikeCount(item), 0)
+                      )}
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          ))}
+        </div>
       </div>
     );
   }

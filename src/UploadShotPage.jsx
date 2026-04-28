@@ -333,7 +333,7 @@ function UploadShotPage({ mode = 'upload', initialData = null, toAppHref, contri
     let nextValue = currentValue;
     let nextSelectionStart = selectionStart;
     let nextSelectionEnd = selectionEnd;
-    
+
     if (type === 'bold') {
       insertValue = `**${selectedText || 'bold text'}**`;
       nextValue = `${beforeSelection}${insertValue}${afterSelection}`;
@@ -356,7 +356,7 @@ function UploadShotPage({ mode = 'upload', initialData = null, toAppHref, contri
       nextSelectionStart = selectionStart;
       nextSelectionEnd = selectionStart + insertValue.length;
     }
-    
+
     updateFormField(field, nextValue);
     requestAnimationFrame(() => {
       textarea.focus();
@@ -398,7 +398,7 @@ function UploadShotPage({ mode = 'upload', initialData = null, toAppHref, contri
       navigateToHash('/profile/upload');
       return;
     }
-    
+
     setIsSavingDraft(true);
     try {
       console.log('Calling onSaveDraft...');
@@ -477,19 +477,19 @@ function UploadShotPage({ mode = 'upload', initialData = null, toAppHref, contri
         <div className="upload-shot-page__topbar upload-shot-page__topbar--details">
           <a className="upload-shot-page__secondary-button" href={profileHref} onClick={() => { clearUploadDetailsEntry(); clearPendingUpload(); }}>Cancel</a>
           <div className="upload-shot-page__topbar-actions">
-            <button 
+            <button
               key="publish-btn"
-              className="upload-shot-page__primary-button upload-shot-page__primary-button--publish" 
-              type="submit" 
+              className="upload-shot-page__primary-button upload-shot-page__primary-button--publish"
+              type="submit"
               form="upload-shot-details-form"
               disabled={isPublishing}
             >
               {isPublishing ? 'Publishing...' : 'Publish Project'}
             </button>
-            <button 
+            <button
               key="draft-btn"
-              className="upload-shot-page__secondary-button" 
-              type="button" 
+              className="upload-shot-page__secondary-button"
+              type="button"
               onClick={handleDetailsDraft}
               disabled={isSavingDraft}
             >

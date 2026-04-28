@@ -2258,6 +2258,7 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [allContributors, setAllContributors] = useState([]);
   const [allShowcases, setAllShowcases] = useState([]);
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState('work');
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -2862,6 +2863,79 @@ function App() {
           </section>
         ) : null}
 
+        {isCreatingCollection && (
+          <div className="modal-overlay">
+            <div className="collection-modal">
+              <header className="collection-modal__header">
+                <h2>Create New Collection</h2>
+                <button className="collection-modal__close" onClick={() => setIsCreatingCollection(false)}>x</button>
+              </header>
+              <form className="collection-modal__form" onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const projectIds = Array.from(formData.getAll('projects'));
+                
+                showNotification('Creating collection...');
+                const res = await api.createShowcase({
+                  title: formData.get('title'),
+                  description: formData.get('description'),
+                  platform: formData.get('platform'),
+                  project_ids: projectIds
+                });
+                
+                if (res.error) {
+                  showNotification('Error: ' + res.error);
+                } else {
+                  showNotification('Collection created!');
+                  setIsCreatingCollection(false);
+                  // Refresh data
+                  const dbShowcases = await api.getShowcases();
+                  setAllShowcases(dbShowcases.map(s => ({
+                    ...s,
+                    author: s.author_name || 'Community',
+                    avatar: s.author_avatar || '#000',
+                    image: s.image_url || '/12.png',
+                    imageAlt: s.title
+                  })));
+                }
+              }}>
+                <label className="collection-modal__field">
+                  <span>Collection Title</span>
+                  <input name="title" required placeholder="e.g. My Best Mobile Apps" />
+                </label>
+                <label className="collection-modal__field">
+                  <span>Description</span>
+                  <textarea name="description" placeholder="What is this collection about?" />
+                </label>
+                <label className="collection-modal__field">
+                  <span>Platform</span>
+                  <select name="platform">
+                    <option value="web">Web</option>
+                    <option value="mobile">Mobile</option>
+                  </select>
+                </label>
+                
+                <div className="collection-modal__projects">
+                  <h3>Select Projects</h3>
+                  <div className="collection-modal__project-list">
+                    {currentUserProjects.map(p => (
+                      <label key={p.id} className="collection-modal__project-item">
+                        <input type="checkbox" name="projects" value={p.id} />
+                        <span>{p.title}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="collection-modal__footer">
+                  <button type="button" onClick={() => setIsCreatingCollection(false)}>Cancel</button>
+                  <button type="submit" className="collection-modal__save">Save Collection</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {isProjectRoute ? (
           <ProjectDetailPage
             project={activeProject}
@@ -2888,6 +2962,7 @@ function App() {
             onTabChange={setActiveProfileTab}
             onDeleteProject={handleDeleteProject}
             onEditProject={handleEditProject}
+            onCreateCollection={() => setIsCreatingCollection(true)}
           />
         ) : isContributorProfilePage ? (
           <PublicProfilePage
