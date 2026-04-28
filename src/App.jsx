@@ -2901,11 +2901,11 @@ function App() {
               }}>
                 <label className="collection-modal__field">
                   <span>Collection Title</span>
-                  <input name="title" required placeholder="e.g. My Best Mobile Apps" />
+                  <input name="title" required />
                 </label>
                 <label className="collection-modal__field">
                   <span>Description</span>
-                  <textarea name="description" placeholder="What is this collection about?" />
+                  <textarea name="description" />
                 </label>
                 <label className="collection-modal__field">
                   <span>Platform</span>

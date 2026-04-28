@@ -4,9 +4,7 @@ import './profile.css';
 const profileTabs = [
   { id: 'work', label: 'Work' },
   { id: 'drafts', label: 'Drafts' },
-  { id: 'reviews', label: 'Reviews' },
   { id: 'recent', label: 'Recent' },
-  { id: 'liked', label: 'Liked Shots' },
   { id: 'collections', label: 'Collections' },
 ];
 
@@ -341,9 +339,10 @@ function ProfilePage({
     copy,
     buttonLabel = 'Upload your first shot',
     buttonHref = '/profile/upload',
+    onButtonClick = null,
   }) {
     return (
-      <section className="profile-page__empty-state" aria-labelledby="profile-empty-title">
+      <section className={`profile-page__empty-state ${onButtonClick ? 'profile-page__empty-state--small' : ''}`} aria-labelledby="profile-empty-title">
         <div className="profile-page__upload-badge" aria-hidden="true">
           <UploadCloudIcon />
         </div>
@@ -354,9 +353,15 @@ function ProfilePage({
 
         <p className="profile-page__empty-copy">{copy}</p>
 
-        <a className="profile-page__upload-button" href={resolveHref(buttonHref)}>
-          {buttonLabel}
-        </a>
+        {onButtonClick ? (
+          <button className="profile-page__upload-button" type="button" onClick={onButtonClick}>
+            {buttonLabel}
+          </button>
+        ) : (
+          <a className="profile-page__upload-button" href={resolveHref(buttonHref)}>
+            {buttonLabel}
+          </a>
+        )}
       </section>
     );
   }
@@ -488,7 +493,7 @@ function ProfilePage({
             title: 'No collections yet',
             copy: 'Group your projects into collections to showcase them together.',
             buttonLabel: 'Create your first collection',
-            buttonHref: '#', // Handled by onClick
+            onButtonClick: onCreateCollection,
           })}
         </div>
       );
@@ -507,39 +512,28 @@ function ProfilePage({
             <PlusIcon />
           </button>
         </div>
-        <div className="profile-page__shots-grid profile-page__shots-grid--collections">
+        <div className="profile-page__shots-grid profile-page__shots-grid--projects">
           {collections.map((collection) => (
-            <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--collection">
-              <div className="profile-page__collection-media" aria-hidden="true">
-                {collection.items.slice(0, 3).map((project, index) => (
+            <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--project">
+              <a
+                className="profile-page__shot-link"
+                href="#"
+                onClick={(e) => e.preventDefault()}
+              >
+                <div className="profile-page__shot-media">
                   <img
-                    key={project.slug}
-                    className={`profile-page__collection-image profile-page__collection-image--${index + 1}`}
-                    src={project.image}
-                    alt=""
+                    className="profile-page__shot-image"
+                    src={collection.items[0]?.image || '/12.png'}
+                    alt={collection.name}
+                    loading="lazy"
                   />
-                ))}
-              </div>
-
-              <div className="profile-page__shot-footer">
-                <div className="profile-page__shot-copy">
-                  <p className="profile-page__shot-kicker">Curated collection</p>
-                  <h3 className="profile-page__shot-title">{collection.name}</h3>
-                  <p className="profile-page__shot-summary">
-                    {collection.items.length} saved project{collection.items.length === 1 ? '' : 's'} grouped
-                    together for quick browsing.
-                  </p>
                 </div>
+              </a>
 
-                <div className="profile-page__shot-stats" aria-label={`${collection.name} collection activity`}>
-                  <span className="profile-page__shot-stat">
-                    <HeartIcon />
-                    <span>
-                      {formatCompactCount(
-                        collection.items.reduce((total, item) => total + getProjectLikeCount(item), 0)
-                      )}
-                    </span>
-                  </span>
+              <div className="profile-page__shot-footer profile-page__shot-footer--project">
+                <div className="profile-page__shot-copy--project">
+                  <h3 className="profile-page__shot-title--compact">{collection.name}</h3>
+                  <p className="profile-page__shot-meta">{collection.items.length} projects</p>
                 </div>
               </div>
             </article>
