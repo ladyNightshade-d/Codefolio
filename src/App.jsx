@@ -1825,7 +1825,26 @@ function CloseIcon() {
 
 function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug }) {
   const [activeGalleryPage, setActiveGalleryPage] = useState(0);
-  const primaryMember = project.team[0] || null;
+  
+  if (!project) {
+    return (
+      <section className="project-detail-page">
+        <div className="container container--project-detail">
+          <header className="project-detail__hero">
+            <div className="project-detail__hero-bar">
+              <h1 className="project-detail__title">Loading Project...</h1>
+              <button className="project-detail__close" type="button" onClick={onClose}><CloseIcon /></button>
+            </div>
+          </header>
+          <div className="page-loading-skeleton" style={{ marginTop: '40px' }}>
+            <div style={{ height: '400px', background: '#f9f9f9', borderRadius: '12px' }}></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const primaryMember = project.team?.[0] || null;
   const primaryContributor = primaryMember?.slug ? findContributorBySlug(primaryMember.slug) : null;
   const primaryContributorProfileHref = primaryMember?.slug
     ? toAppHref(getContributorProfilePath(primaryMember.slug))
@@ -2830,7 +2849,7 @@ function App() {
           </section>
         ) : null}
 
-        {isProjectDetailPage ? (
+        {isProjectRoute ? (
           <ProjectDetailPage
             project={activeProject}
             onClose={handleCloseProjectDetail}
