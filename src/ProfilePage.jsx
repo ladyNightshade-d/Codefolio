@@ -255,6 +255,7 @@ function ProfilePage({
   toAppHref,
   profile,
   projects = [],
+  collections = [],
   activeTab = 'work',
   onTabChange,
   onDeleteProject,
@@ -505,7 +506,7 @@ function ProfilePage({
           {collections.map((collection) => {
             const firstProject = collection.items[0];
             return (
-              <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--project">
+              <article key={collection.title} className="profile-page__shot-card profile-page__shot-card--project">
                 <a
                   className="profile-page__shot-link"
                   href="#"
@@ -514,8 +515,8 @@ function ProfilePage({
                   <div className="profile-page__shot-media">
                     <img
                       className="profile-page__shot-image"
-                      src={firstProject?.image || '/12.png'}
-                      alt={collection.name}
+                      src={firstProject?.image_url || firstProject?.image || '/12.png'}
+                      alt={collection.title}
                       loading="lazy"
                     />
                   </div>
@@ -523,7 +524,7 @@ function ProfilePage({
 
                 <div className="profile-page__shot-footer profile-page__shot-footer--project">
                   <div className="profile-page__shot-copy--project">
-                    <h3 className="profile-page__shot-title--compact">{collection.name}</h3>
+                    <h3 className="profile-page__shot-title--compact">{collection.title}</h3>
                     <p className="profile-page__shot-meta">{collection.items.length} projects</p>
                   </div>
                 </div>

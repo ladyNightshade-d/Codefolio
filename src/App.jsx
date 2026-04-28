@@ -1716,7 +1716,7 @@ function ShowcasePreview({ collection }) {
 }
 
 function ShowcasesPage({ searchTerm = '', collections = [] }) {
-  const [activePlatform, setActivePlatform] = useState('mobile');
+  const [activePlatform, setActivePlatform] = useState('web');
   const [activeSort, setActiveSort] = useState('featured');
   const visibleCollections = getVisibleShowcaseCollections(activePlatform, activeSort, collections).filter(c => 
     !searchTerm || 
@@ -2365,7 +2365,8 @@ function App() {
             author: s.author_name || 'Community',
             avatar: s.author_avatar || '#000',
             image: s.image_url || '/12.png',
-            imageAlt: s.title
+            imageAlt: s.title,
+            items: s.projects || []
           })));
         }
 
@@ -2445,6 +2446,7 @@ function App() {
       )
     : projects;
   const publishedProjects = filteredProjects.filter((project) => project.visibility !== 'draft');
+  const currentUserCollections = allShowcases.filter(s => s.author_id === currentUser.id);
 
   const filteredContributors = isSearchActive
     ? contributorDirectory.filter((c) => 
@@ -2910,7 +2912,8 @@ function App() {
                     author: s.author_name || 'Community',
                     avatar: s.author_avatar || '#000',
                     image: s.image_url || '/12.png',
-                    imageAlt: s.title
+                    imageAlt: s.title,
+                    items: s.projects || []
                   })));
                 }
               }}>
@@ -3013,6 +3016,7 @@ function App() {
             toAppHref={toAppHref}
             profile={currentUser}
             projects={currentUserProjects}
+            collections={currentUserCollections}
             activeTab={activeProfileTab}
             onTabChange={setActiveProfileTab}
             onDeleteProject={handleDeleteProject}
