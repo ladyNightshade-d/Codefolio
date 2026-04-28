@@ -2245,6 +2245,7 @@ function App() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const showNotification = (message, duration = 5000) => {
     setNotification(message);
@@ -2380,6 +2381,8 @@ function App() {
         }
       } catch (error) {
         console.error('Fetch error:', error);
+      } finally {
+        setIsInitialLoading(false);
       }
     };
 
@@ -2704,6 +2707,18 @@ function App() {
       window.location.replace('/login');
     }
     return null;
+  }
+
+  if (isInitialLoading) {
+    return (
+      <div className="global-loading-screen">
+        <div className="global-loading-screen__content">
+          <div className="global-loading-screen__logo">&lt;/&gt;</div>
+          <div className="global-loading-screen__spinner"></div>
+          <p className="global-loading-screen__text">Loading Codefolio...</p>
+        </div>
+      </div>
+    );
   }
 
   if (isDashboardPage) {

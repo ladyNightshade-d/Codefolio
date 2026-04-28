@@ -4,6 +4,59 @@
   font-display: swap;
 }
 
+/* Global Loading Screen */
+.global-loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.global-loading-screen__content {
+  text-align: center;
+}
+
+.global-loading-screen__logo {
+  font-family: ui-monospace, monospace;
+  font-weight: 800;
+  font-size: 48px;
+  color: #000;
+  margin-bottom: 24px;
+}
+
+.global-loading-screen__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #000;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 0.8s linear infinite;
+}
+
+.global-loading-screen__text {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.page-loading-skeleton {
+  padding: 40px 0;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 :root {
   color: #151515;
   background: #ffffff;
