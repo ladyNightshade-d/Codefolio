@@ -2538,3 +2538,98 @@ select:autofill {
   min-height: auto !important;
 }
 
+
+/* Premium Rounded Collection Modal */
+.collection-modal {
+  border-radius: 32px !important;
+  font-family: inherit !important;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.collection-modal__close {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 999px !important;
+  background: #f6f6f6 !important;
+  color: #111 !important;
+  transition: all 0.2s ease;
+}
+
+.collection-modal__close:hover {
+  background: #eee !important;
+  transform: rotate(90deg);
+}
+
+.modal-close-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.collection-modal__field input,
+.collection-modal__field select {
+  border-radius: 999px !important; /* Pill style from edit profile */
+  border: 1px solid #dfddd7 !important;
+  padding: 0 24px !important;
+  min-height: 56px !important;
+  font-size: 16px !important;
+}
+
+.collection-modal__field textarea {
+  border-radius: 24px !important;
+  border: 1px solid #dfddd7 !important;
+  padding: 18px 24px !important;
+  min-height: 140px !important;
+  font-size: 16px !important;
+}
+
+.collection-modal__project-item {
+  border-radius: 18px !important;
+  margin-bottom: 8px;
+  background: #fcfbf9 !important;
+  padding: 14px 20px !important;
+  border: 1px solid #f0f0f0;
+}
+
+.collection-modal__project-item input[type="checkbox"] {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #dfddd7;
+  border-radius: 999px !important; /* Fully rounded checkbox */
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.collection-modal__project-item input[type="checkbox"]:checked {
+  background: #ea4c89 !important; /* Pinkish fill */
+  border-color: #ea4c89 !important;
+}
+
+.collection-modal__project-item input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+.collection-modal__save {
+  border-radius: 999px !important;
+  background: #000 !important;
+  padding: 0 40px !important;
+  min-height: 56px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.1);
+}
+
+.collection-modal__save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(0,0,0,0.15);
+}
+

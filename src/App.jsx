@@ -1813,14 +1813,17 @@ function ShowcasesPage({ searchTerm = '', collections = [] }) {
   );
 }
 
-function CloseIcon() {
+function CloseIcon({ className = "modal-close-icon" }) {
   return (
     <svg
       aria-hidden="true"
-      className="project-detail__close-icon"
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d="M7 7 17 17" />
       <path d="M17 7 7 17" />
@@ -1898,7 +1901,7 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
               onClick={onClose}
               aria-label="Close project description"
             >
-              <CloseIcon />
+              <CloseIcon className="project-detail__close-icon" />
             </button>
           </div>
 
@@ -2868,7 +2871,9 @@ function App() {
             <div className="collection-modal">
               <header className="collection-modal__header">
                 <h2>Create New Collection</h2>
-                <button className="collection-modal__close" onClick={() => setIsCreatingCollection(false)}>x</button>
+                <button className="collection-modal__close" onClick={() => setIsCreatingCollection(false)}>
+                  <CloseIcon />
+                </button>
               </header>
               <form className="collection-modal__form" onSubmit={async (e) => {
                 e.preventDefault();
