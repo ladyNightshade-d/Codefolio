@@ -2275,11 +2275,34 @@ function App() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [viewingCollection, setViewingCollection] = useState(null);
 
   const showNotification = (message, duration = 5000) => {
     setNotification(message);
     if (duration) {
       setTimeout(() => setNotification(null), duration);
+    }
+  };
+
+  const handleDeleteCollection = async (id) => {
+    if (!confirm("Are you sure you want to delete this collection?")) return;
+    
+    showNotification('Deleting collection...');
+    const res = await api.deleteShowcase(id);
+    if (res.error) {
+      showNotification('Error: ' + res.error);
+    } else {
+      showNotification('Collection deleted');
+      // Refresh
+      const dbShowcases = await api.getShowcases();
+      setAllShowcases(dbShowcases.map(s => ({
+        ...s,
+        author: s.author_name || 'Community',
+        avatar: s.author_avatar || '#000',
+        image: s.image_url || '/12.png',
+        imageAlt: s.title,
+        items: s.projects || []
+      })));
     }
   };
 
@@ -2872,6 +2895,48 @@ function App() {
           </section>
         ) : null}
 
+        {viewingCollection && (
+          <div className="modal-overlay">
+            <div className="collection-modal collection-modal--view">
+              <header className="collection-modal__header">
+                <div>
+                  <h2>{viewingCollection.title}</h2>
+                  <p className="collection-modal__subtitle">{viewingCollection.description}</p>
+                </div>
+                <button className="collection-modal__close" onClick={() => setViewingCollection(null)}>
+                  <CloseIcon />
+                </button>
+              </header>
+              <div className="collection-modal__view-projects">
+                <h3>Projects in this collection</h3>
+                <div className="collection-modal__project-list">
+                  {viewingCollection.items.map(p => (
+                    <div key={p.id} className="collection-modal__view-item">
+                      <div className="collection-modal__view-item-image">
+                         <img src={p.image_url || p.image || "/12.png"} alt={p.title} />
+                      </div>
+                      <div className="collection-modal__view-item-info">
+                        <h4>{p.title}</h4>
+                        <p>{p.summary || "No summary provided."}</p>
+                      </div>
+                      <a 
+                        className="collection-modal__view-item-link" 
+                        href={toAppHref(`/${p.ownerUsername || 'projects'}/${p.slug}`)}
+                        onClick={() => setViewingCollection(null)}
+                      >
+                        View Project
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="collection-modal__footer">
+                <button type="button" className="collection-modal__save" onClick={() => setViewingCollection(null)}>Done</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isCreatingCollection && (
           <div className="modal-overlay">
             <div className="collection-modal">
@@ -3022,6 +3087,8 @@ function App() {
             onDeleteProject={handleDeleteProject}
             onEditProject={handleEditProject}
             onCreateCollection={() => setIsCreatingCollection(true)}
+            onDeleteCollection={handleDeleteCollection}
+            onViewCollection={setViewingCollection}
           />
         ) : isContributorProfilePage ? (
           <PublicProfilePage

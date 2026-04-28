@@ -345,6 +345,24 @@ app.post('/api/showcases', authenticateToken, async (req, res) => {
   }
 });
 
+app.delete('/api/showcases/:id', authenticateToken, async (req, res) => {
+  try {
+    // Verify ownership
+    const check = await query('SELECT author_id FROM showcases WHERE id = $1', [req.params.id]);
+    if (check.rows.length === 0) return res.status(404).json({ error: 'Showcase not found' });
+    if (check.rows[0].author_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    // Delete relationships first
+    await query('DELETE FROM showcase_projects WHERE showcase_id = $1', [req.params.id]);
+    // Delete showcase
+    await query('DELETE FROM showcases WHERE id = $1', [req.params.id]);
+    
+    res.json({ message: 'Collection deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create/Update Project
 app.post('/api/projects', authenticateToken, async (req, res) => {
   // Frontend sends data nested under formData — merge it with top-level fields

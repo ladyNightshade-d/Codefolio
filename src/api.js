@@ -137,5 +137,13 @@ export const api = {
       body: JSON.stringify(showcaseData)
     });
     return res.json();
+  },
+  
+  deleteShowcase: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/showcases/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    return res.json();
   }
 };

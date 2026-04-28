@@ -144,6 +144,25 @@ function PlusIcon() {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="profile-page__trash-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    </svg>
+  );
+}
+
 function getInitials(name) {
   return name
     .split(/\s+/)
@@ -261,6 +280,8 @@ function ProfilePage({
   onDeleteProject,
   onEditProject,
   onCreateCollection,
+  onDeleteCollection,
+  onViewCollection,
 }) {
   const menuRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -506,10 +527,10 @@ function ProfilePage({
             const firstProject = collection.items[0];
             return (
               <article key={collection.title} className="profile-page__shot-card profile-page__shot-card--project">
-                <a
+                <div
                   className="profile-page__shot-link"
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
+                  onClick={() => onViewCollection(collection)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="profile-page__shot-media">
                     <img
@@ -518,10 +539,22 @@ function ProfilePage({
                       alt={collection.title}
                       loading="lazy"
                     />
+                    <div className="profile-page__shot-overlay">
+                       <button 
+                        className="profile-page__delete-collection" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteCollection(collection.id);
+                        }}
+                        title="Delete Collection"
+                       >
+                         <TrashIcon />
+                       </button>
+                    </div>
                   </div>
-                </a>
+                </div>
 
-                <div className="profile-page__shot-footer profile-page__shot-footer--project">
+                <div className="profile-page__shot-footer profile-page__shot-footer--project" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
                   <div className="profile-page__shot-copy--project">
                     <h3 className="profile-page__shot-title--compact">{collection.title}</h3>
                     <p className="profile-page__shot-meta">{collection.items.length} projects</p>
