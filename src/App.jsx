@@ -1825,7 +1825,11 @@ function CloseIcon() {
 
 function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug }) {
   const [activeGalleryPage, setActiveGalleryPage] = useState(0);
-  
+
+  useEffect(() => {
+    setActiveGalleryPage(0);
+  }, [project?.slug]);
+
   if (!project) {
     return (
       <section className="project-detail-page">
@@ -1859,10 +1863,6 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
   );
   const hasGalleryControls = galleryPageCount > 1;
   const projectYear = project.cohort ? (project.cohort.match(/\d{4}/)?.[0] || project.cohort) : '';
-
-  useEffect(() => {
-    setActiveGalleryPage(0);
-  }, [project.slug]);
 
   function handlePreviousGalleryImage() {
     setActiveGalleryPage((currentPage) =>
