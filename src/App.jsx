@@ -2263,6 +2263,9 @@ function App() {
   const [allShowcases, setAllShowcases] = useState([]);
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [projectSearchTerm, setProjectSearchTerm] = useState('');
+  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState('web');
+  const [selectedPlatformLabel, setSelectedPlatformLabel] = useState('Web Application');
   const [activeProfileTab, setActiveProfileTab] = useState('work');
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -2916,24 +2919,44 @@ function App() {
                 </label>
                 <label className="collection-modal__field">
                   <span>Platform</span>
-                  <div className="collection-modal__select-container">
-                    <select name="platform">
-                      <option value="web">Web Application</option>
-                      <option value="mobile">Mobile Application</option>
-                      <option value="design">UI/UX Design</option>
-                    </select>
-                    <ChevronDownIcon />
+                  <div className="collection-modal__custom-select" onClick={() => setIsPlatformDropdownOpen(!isPlatformDropdownOpen)}>
+                    <div className="collection-modal__select-trigger">
+                      <span>{selectedPlatformLabel || 'Select Platform'}</span>
+                      <input type="hidden" name="platform" value={selectedPlatform || 'web'} />
+                      <ChevronDownIcon />
+                    </div>
+                    {isPlatformDropdownOpen && (
+                      <div className="collection-modal__dropdown-options">
+                        {[
+                          { value: 'web', label: 'Web Application' },
+                          { value: 'mobile', label: 'Mobile Application' },
+                          { value: 'design', label: 'UI/UX Design' }
+                        ].map(opt => (
+                          <div 
+                            key={opt.value} 
+                            className={`collection-modal__option ${selectedPlatform === opt.value ? 'collection-modal__option--selected' : ''}`}
+                            onClick={() => {
+                              setSelectedPlatform(opt.value);
+                              setSelectedPlatformLabel(opt.label);
+                              setIsPlatformDropdownOpen(false);
+                            }}
+                          >
+                            {opt.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </label>
                 
                 <div className="collection-modal__projects">
                   <div className="collection-modal__projects-header">
                     <h3>Select Projects</h3>
-                    <div className="collection-modal__search">
+                    <div className="collection-modal__search collection-modal__search--large">
                       <SearchIcon />
                       <input 
                         type="text" 
-                        placeholder="Search your projects..." 
+                        placeholder="Search projects..." 
                         value={projectSearchTerm}
                         onChange={(e) => setProjectSearchTerm(e.target.value)}
                       />
@@ -2945,7 +2968,7 @@ function App() {
                       .map(p => (
                       <label key={p.id} className="collection-modal__project-item">
                         <input type="checkbox" name="projects" value={p.id} />
-                        <span>{p.title}</span>
+                        <span className="collection-modal__project-name">{p.title}</span>
                       </label>
                     ))}
                     {currentUserProjects.filter(p => p.title.toLowerCase().includes(projectSearchTerm.toLowerCase())).length === 0 && (

@@ -2720,3 +2720,125 @@ select:autofill {
   padding: 20px 0;
 }
 
+
+/* Refined Collection Modal UI */
+.collection-modal__search {
+  width: 280px !important; /* Increased width */
+  height: 46px !important; /* Increased height */
+  padding: 0 20px !important;
+}
+
+.collection-modal__search input {
+  font-size: 15px !important; /* Increased text size */
+}
+
+.collection-modal__select-container .dashboard-icon {
+  right: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important; /* Perfect vertical centering */
+  color: #111 !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.collection-modal__select-container select {
+  font-weight: 600 !important;
+  color: #111 !important;
+}
+
+/* Designing the options (Custom Dropdown Look) */
+.collection-modal__select-container {
+  background: #fff;
+  border-radius: 999px;
+}
+
+.collection-modal__search .dashboard-icon {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+
+/* Custom Designed Dropdown & Large Search */
+.collection-modal__custom-select {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.collection-modal__select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 24px;
+  background: #fff;
+  border: 1px solid #dfddd7;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.collection-modal__select-trigger .dashboard-icon {
+  width: 20px;
+  height: 20px;
+  color: #111;
+  transition: transform 0.2s ease;
+}
+
+.collection-modal__dropdown-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #dfddd7;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+  z-index: 10;
+  overflow: hidden;
+  padding: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.collection-modal__option {
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.collection-modal__option:hover {
+  background: #f5f5f5;
+  color: #000;
+}
+
+.collection-modal__option--selected {
+  background: #f0f0f0;
+  color: #ea4c89;
+  font-weight: 700;
+}
+
+.collection-modal__search--large {
+  width: 320px !important;
+  height: 48px !important;
+  padding: 0 22px !important;
+}
+
+.collection-modal__search--large input {
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+.collection-modal__project-name {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #111 !important;
+}
+
+.collection-modal__search--large .dashboard-icon {
+  width: 18px !important;
+  height: 18px !important;
+}
+
