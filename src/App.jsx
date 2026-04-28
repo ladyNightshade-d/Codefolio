@@ -2661,6 +2661,7 @@ function App() {
     : null;
   
   const isProjectDetailPage = Boolean(activeProject);
+  const isProjectRoute = Boolean(projectMatch);
 
   function handleCloseProjectDetail() {
     if (typeof window === 'undefined') {
@@ -2895,6 +2896,12 @@ function App() {
             ]}
             actions={[{ label: 'support@codefolio.dev', href: 'mailto:support@codefolio.dev' }]}
           />
+        ) : isProjectRoute ? (
+          <div className="page-loading-skeleton">
+            <div className="container">
+              <div style={{ height: '400px', background: '#f5f5f5', borderRadius: '12px', marginTop: '40px', animate: 'pulse 2s infinite' }}></div>
+            </div>
+          </div>
         ) : (
           <LandingPage projects={featuredProjectCards} toAppHref={toAppHref} />
         )}
