@@ -281,6 +281,49 @@ function ChatWithAiPage({ toAppHref, profile }) {
     }
   }
 
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Message copied
+    });
+  };
+
+  const handleReload = async () => {
+    if (messages.length < 1 || isThinking) return;
+    
+    // Find the last user message
+    const lastUserIndex = [...messages].reverse().findIndex(m => m.role === 'user');
+    if (lastUserIndex === -1) return;
+    
+    const actualIndex = messages.length - 1 - lastUserIndex;
+    const historyUpToLastUser = messages.slice(0, actualIndex + 1);
+    
+    setIsThinking(true);
+    try {
+      const token = localStorage.getItem('codefolio_token');
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          messages: historyUpToLastUser, 
+          userId: profile?.id,
+          conversationId: activeConversationId 
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMessages([...historyUpToLastUser, { role: 'assistant', text: data.text }]);
+      }
+    } catch (error) {
+      console.error('Reload Error:', error);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
   async function handleSubmit(event) {
     event.preventDefault();
     processMessage(composerValue);
@@ -451,14 +494,22 @@ function ChatWithAiPage({ toAppHref, profile }) {
                      />
                      {msg.role === 'assistant' && (
                        <div className="chat-ai-page__message-actions">
-                         <button type="button" aria-label="Like"><ThumbsUpIcon /></button>
-                         <button type="button" aria-label="Dislike"><ThumbsDownIcon /></button>
-                         <button type="button" aria-label="Share"><ShareIcon /></button>
-                         <button type="button" aria-label="Copy"><CopyIcon /></button>
-                         <button type="button" aria-label="Listen"><VolumeIcon /></button>
-                         <button type="button" aria-label="Reload"><ReloadIcon /></button>
-                         <button type="button" aria-label="Edit"><EditIcon /></button>
-                         <span className="chat-ai-page__action-text">Edit in a page</span>
+                          <button 
+                            type="button" 
+                            aria-label="Copy" 
+                            onClick={() => handleCopy(msg.text)}
+                            title="Copy to clipboard"
+                          >
+                            <CopyIcon />
+                          </button>
+                          <button 
+                            type="button" 
+                            aria-label="Reload" 
+                            onClick={handleReload}
+                            title="Regenerate response"
+                          >
+                            <ReloadIcon />
+                          </button>
                        </div>
                      )}
                  </div>
