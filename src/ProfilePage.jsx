@@ -606,12 +606,12 @@ function ProfilePage({
                   onClick={() => onViewCollection(collection)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <div className={`profile-page__collection-media profile-page__collection-media--${displayImages.length || 1}`}>
+                  <div className={`profile-page__collection-stack profile-page__collection-stack--${displayImages.length || 1}`}>
                     {displayImages.length > 0 ? (
                       displayImages.map((img, idx) => (
                         <img
                           key={idx}
-                          className={`profile-page__collection-image profile-page__collection-image--${idx + 1}`}
+                          className={`profile-page__stack-item profile-page__stack-item--${idx + 1}`}
                           src={img}
                           alt=""
                         />
