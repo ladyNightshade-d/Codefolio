@@ -530,7 +530,7 @@ function ProfilePage({
           {collections.map((collection) => {
             const projects = collection.items || [];
             return (
-              <article key={collection.id || collection.title} className="profile-page__shot-card">
+              <article key={collection.id || collection.title} className="profile-page__shot-card" style={{ overflow: 'visible' }}>
                 <div className="profile-page__project-menu profile-page__collection-menu">
                   <button
                     className="profile-page__project-menu-button"
