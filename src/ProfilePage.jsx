@@ -553,7 +553,7 @@ function ProfilePage({
             }
 
             return (
-              <article key={collection.id || collection.title} className="profile-page__shot-card" style={{ overflow: 'visible' }}>
+              <article key={collection.id || collection.title} className="profile-page__shot-card profile-page__shot-card--project" style={{ overflow: 'visible' }}>
                 <div className="profile-page__project-menu profile-page__collection-menu">
                   <button
                     className="profile-page__project-menu-button"
@@ -622,9 +622,9 @@ function ProfilePage({
                   </div>
                 </div>
 
-                <div className="profile-page__shot-footer" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
-                  <div className="profile-page__shot-copy">
-                    <h3 className="profile-page__shot-title">{collection.title}</h3>
+                <div className="profile-page__shot-footer profile-page__shot-footer--project" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
+                  <div className="profile-page__shot-copy--project">
+                    <h3 className="profile-page__shot-title--compact">{collection.title}</h3>
                     <p className="profile-page__shot-meta">{projects.length} projects</p>
                   </div>
                 </div>
