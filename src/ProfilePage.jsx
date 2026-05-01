@@ -553,7 +553,7 @@ function ProfilePage({
             }
 
             return (
-              <article key={collection.id || collection.title} className="profile-page__shot-card profile-page__shot-card--project" style={{ overflow: 'visible' }}>
+              <article key={collection.id || collection.title} className="profile-page__shot-card profile-page__shot-card--project profile-page__shot-card--collection" style={{ overflow: 'visible' }}>
                 <div className="profile-page__project-menu profile-page__collection-menu">
                   <button
                     className="profile-page__project-menu-button"

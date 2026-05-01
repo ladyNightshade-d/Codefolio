@@ -462,6 +462,13 @@
   box-shadow: inset 0 0 0 1px rgba(20, 20, 20, 0.04);
 }
 
+/* Remove inset border and background for collections to make them truly borderless */
+.profile-page__shot-card--collection .profile-page__shot-link {
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
 .profile-page__shot-card--project .profile-page__shot-link:hover {
   transform: none;
 }
