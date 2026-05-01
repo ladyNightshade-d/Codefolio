@@ -198,6 +198,18 @@ function ChatWithAiPage({ toAppHref, profile }) {
        globalFooter.style.display = 'none';
     }
 
+    // Check for initial message in URL
+    const hash = window.location.hash;
+    if (hash.includes('?m=')) {
+      const params = new URLSearchParams(hash.split('?')[1]);
+      const initialMessage = params.get('m');
+      if (initialMessage && messages.length === 0) {
+        processMessage(initialMessage);
+        // Clear the URL parameter to prevent re-submission on refresh
+        window.history.replaceState(null, '', window.location.pathname + window.location.hash.split('?')[0]);
+      }
+    }
+
     // Fetch recent chats
     if (profile?.id) {
       const token = localStorage.getItem('codefolio_token');
@@ -216,11 +228,10 @@ function ChatWithAiPage({ toAppHref, profile }) {
     };
   }, [profile?.id]);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    if (!composerValue.trim()) return;
+  async function processMessage(text) {
+    if (!text.trim()) return;
 
-    const userMessage = { role: 'user', text: composerValue };
+    const userMessage = { role: 'user', text: text };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setComposerValue('');
@@ -260,6 +271,11 @@ function ChatWithAiPage({ toAppHref, profile }) {
     } finally {
       setIsThinking(false);
     }
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    processMessage(composerValue);
   }
 
   function toggleSidebar() {

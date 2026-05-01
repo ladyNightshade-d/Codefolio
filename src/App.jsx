@@ -11,6 +11,22 @@ import SignupPage from './SignupPage.jsx';
 import UploadShotPage from './UploadShotPage.jsx';
 import AuthPage from './AuthPage.jsx';
 
+function SparklesIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      style={{ width: '18px', height: '18px', flexShrink: 0 }}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="m12 4 1.1 3.2L16.4 8l-3.3.9L12 12l-1.1-3.1L7.6 8l3.3-.8L12 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m18.4 13.4.6 1.7 1.8.5-1.8.5-.6 1.7-.6-1.7-1.7-.5 1.7-.5.6-1.7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m6.4 13.8.8 2.2 2.2.7-2.2.6-.8 2.2-.8-2.2-2.2-.6 2.2-.7.8-2.2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function getCurrentPath() {
   if (typeof window === 'undefined') {
     return '/';
@@ -1517,6 +1533,7 @@ function Footer() {
 
 function LandingPage({ projects, toAppHref }) {
   const [activeFilter, setActiveFilter] = useState('All projects');
+  const [aiInputValue, setAiInputValue] = useState('');
 
   const filteredProjects = activeFilter === 'All projects'
     ? projects
@@ -1525,6 +1542,13 @@ function LandingPage({ projects, toAppHref }) {
         p.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase())) ||
         (p.collections && p.collections.some(c => c.toLowerCase().includes(activeFilter.toLowerCase())))
       );
+
+  const handleAiSubmit = (e) => {
+    e.preventDefault();
+    if (!aiInputValue.trim()) return;
+    window.location.hash = `/dashboard/chat?m=${encodeURIComponent(aiInputValue)}`;
+  };
+
   return (
     <>
       <section className="hero-section">
@@ -1547,6 +1571,21 @@ function LandingPage({ projects, toAppHref }) {
               Explore showcases
             </a>
           </div>
+
+          <form className="dashboard-ai-banner" onSubmit={handleAiSubmit} style={{ marginTop: '40px', maxWidth: '600px', marginInline: 'auto' }}>
+            <button className="dashboard-ai-banner__button" type="submit">
+              <SparklesIcon />
+              <span>Ask AI</span>
+              <span className="dashboard-ai-banner__badge">NEW</span>
+            </button>
+            <input
+              className="dashboard-ai-banner__input"
+              type="text"
+              placeholder="Tell us what you need and help you to find it easily using AI."
+              value={aiInputValue}
+              onChange={(e) => setAiInputValue(e.target.value)}
+            />
+          </form>
 
           <div className="trust-strip">
             <p className="trust-strip__label">Trusted by modern engineering teams</p>
