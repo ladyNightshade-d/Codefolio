@@ -526,76 +526,86 @@ function ProfilePage({
             <PlusIcon />
           </button>
         </div>
-        <div className="profile-page__shots-grid profile-page__shots-grid--projects">
+        <div className="profile-page__shots-grid profile-page__shots-grid--collections">
           {collections.map((collection) => {
-            const firstProject = collection.items[0];
+            const projects = collection.items || [];
             return (
-              <article key={collection.title} className="profile-page__shot-card profile-page__shot-card--project">
+              <article key={collection.id || collection.title} className="profile-page__shot-card">
+                <div className="profile-page__project-menu profile-page__collection-menu">
+                  <button
+                    className="profile-page__project-menu-button"
+                    type="button"
+                    aria-label={`Open actions for ${collection.title}`}
+                    aria-expanded={openCollectionMenuId === collection.id}
+                    aria-haspopup="menu"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenCollectionMenuId((currentId) =>
+                        currentId === collection.id ? null : collection.id
+                      );
+                    }}
+                  >
+                    <VerticalDotsIcon />
+                  </button>
+
+                  {openCollectionMenuId === collection.id ? (
+                    <div className="profile-page__project-menu-dropdown" role="menu" aria-label={`${collection.title} actions`}>
+                      <button
+                        className="profile-page__project-menu-item"
+                        type="button"
+                        role="menuitem"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenCollectionMenuId(null);
+                          onEditCollection?.(collection);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="profile-page__project-menu-item profile-page__project-menu-item--danger"
+                        type="button"
+                        role="menuitem"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenCollectionMenuId(null);
+                          onDeleteCollection?.(collection.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
                 <div
                   className="profile-page__shot-link"
                   onClick={() => onViewCollection(collection)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <div className="profile-page__shot-media">
+                  <div className="profile-page__collection-media">
                     <img
-                      className="profile-page__shot-image"
-                      src={firstProject?.image_url || firstProject?.image || '/12.png'}
-                      alt={collection.title}
-                      loading="lazy"
+                      className="profile-page__collection-image profile-page__collection-image--1"
+                      src={projects[0]?.image_url || projects[0]?.image || '/12.png'}
+                      alt=""
                     />
-                    <div className="profile-page__project-menu profile-page__collection-menu">
-                      <button
-                        className="profile-page__project-menu-button"
-                        type="button"
-                        aria-label={`Open actions for ${collection.title}`}
-                        aria-expanded={openCollectionMenuId === collection.id}
-                        aria-haspopup="menu"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenCollectionMenuId((currentId) =>
-                            currentId === collection.id ? null : collection.id
-                          );
-                        }}
-                      >
-                        <VerticalDotsIcon />
-                      </button>
-
-                      {openCollectionMenuId === collection.id ? (
-                        <div className="profile-page__project-menu-dropdown" role="menu" aria-label={`${collection.title} actions`}>
-                          <button
-                            className="profile-page__project-menu-item"
-                            type="button"
-                            role="menuitem"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenCollectionMenuId(null);
-                              onEditCollection?.(collection);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="profile-page__project-menu-item profile-page__project-menu-item--danger"
-                            type="button"
-                            role="menuitem"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenCollectionMenuId(null);
-                              onDeleteCollection?.(collection.id);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
+                    <img
+                      className="profile-page__collection-image profile-page__collection-image--2"
+                      src={projects[1]?.image_url || projects[1]?.image || '/12.png'}
+                      alt=""
+                    />
+                    <img
+                      className="profile-page__collection-image profile-page__collection-image--3"
+                      src={projects[2]?.image_url || projects[2]?.image || '/12.png'}
+                      alt=""
+                    />
                   </div>
                 </div>
 
-                <div className="profile-page__shot-footer profile-page__shot-footer--project" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
-                  <div className="profile-page__shot-copy--project">
-                    <h3 className="profile-page__shot-title--compact">{collection.title}</h3>
-                    <p className="profile-page__shot-meta">{collection.items.length} projects</p>
+                <div className="profile-page__shot-footer" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
+                  <div className="profile-page__shot-copy">
+                    <h3 className="profile-page__shot-title">{collection.title}</h3>
+                    <p className="profile-page__shot-meta">{projects.length} projects</p>
                   </div>
                 </div>
               </article>
