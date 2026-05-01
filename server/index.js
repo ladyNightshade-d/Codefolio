@@ -97,21 +97,53 @@ passport.use(new GoogleStrategy({
   }
 ));
 
-// API Routes
+// AI Routes Migration Helper
+async function ensureChatSchema() {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS conversations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id INTEGER REFERENCES users(id),
+        title TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `).catch(e => console.error('Migration Error (conversations):', e.message));
+
+    await query(`
+      ALTER TABLE chat_messages 
+      ADD COLUMN IF NOT EXISTS conversation_id UUID REFERENCES conversations(id)
+    `).catch(e => console.error('Migration Error (conversation_id):', e.message));
+  } catch (e) {
+    console.error('Chat Schema Migration Failed:', e);
+  }
+}
+ensureChatSchema();
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running with PostgreSQL', timestamp: new Date() });
 });
 
 // AI Chat Endpoint
 app.post('/api/ai/chat', authenticateToken, async (req, res) => {
-  const { messages } = req.body;
+  const { messages, conversationId } = req.body;
   const userId = req.user.id;
   
-  if (!messages) return res.status(400).json({ error: 'Messages are required' });
+  if (!messages || !Array.isArray(messages)) return res.status(400).json({ error: 'Messages are required' });
 
   try {
     const lastMessage = messages[messages.length - 1].text;
-    
+    let activeConversationId = conversationId;
+
+    // Handle conversation grouping
+    if (!activeConversationId) {
+      // Create new conversation if this is the first message
+      const newConv = await query(
+        'INSERT INTO conversations (user_id, title) VALUES ($1, $2) RETURNING id',
+        [userId, lastMessage.substring(0, 50)]
+      );
+      activeConversationId = newConv.rows[0].id;
+    }
+
     // Fetch projects context from SQL
     const projectsResult = await query(
       'SELECT title, summary, tech_stack FROM projects WHERE visibility = $1',
@@ -131,20 +163,20 @@ app.post('/api/ai/chat', authenticateToken, async (req, res) => {
     const prompt = `${systemPrompt}\n\nUser: ${lastMessage}`;
     
     if (!process.env.GOOGLE_API_KEY || process.env.GOOGLE_API_KEY === "YOUR_GOOGLE_API_KEY") {
-      return res.json({ text: "AI is in demo mode. Check API key.", role: 'assistant' });
+      return res.json({ text: "AI is in demo mode. Check API key.", role: 'assistant', conversationId: activeConversationId });
     }
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    // Save to local DB
+    // Save to local DB with conversation link
     await query(
-      'INSERT INTO chat_messages (user_id, role, content) VALUES ($1, $2, $3), ($1, $4, $5)',
-      [userId, 'user', lastMessage, 'assistant', text]
+      'INSERT INTO chat_messages (user_id, role, content, conversation_id) VALUES ($1, $2, $3, $6), ($1, $4, $5, $6)',
+      [userId, 'user', lastMessage, 'assistant', text, activeConversationId]
     );
 
-    res.json({ text, role: 'assistant' });
+    res.json({ text, role: 'assistant', conversationId: activeConversationId });
   } catch (error) {
     console.error('AI Error:', error);
     res.status(500).json({ error: 'Failed to generate AI response' });
@@ -163,9 +195,14 @@ app.get('/api/ai/history', authenticateToken, async (req, res) => {
 // Chat History by userId (for loading a specific chat)
 app.get('/api/ai/history/:userId', authenticateToken, async (req, res) => {
   try {
-    const { query: searchQuery } = req.query;
+    const { query: searchQuery, conversationId } = req.query;
     let result;
-    if (searchQuery) {
+    if (conversationId) {
+      result = await query(
+        'SELECT * FROM chat_messages WHERE user_id = $1 AND conversation_id = $2 ORDER BY created_at ASC',
+        [req.user.id, conversationId]
+      );
+    } else if (searchQuery) {
       result = await query(
         `SELECT * FROM chat_messages
          WHERE user_id = $1 AND content ILIKE $2
@@ -184,21 +221,17 @@ app.get('/api/ai/history/:userId', authenticateToken, async (req, res) => {
   }
 });
 
-// Recent Chat Titles
+// Recent Chat Titles (Now returning Conversations)
 app.get('/api/ai/recent/:userId', authenticateToken, async (req, res) => {
   try {
     const result = await query(
-      `SELECT content FROM (
-         SELECT DISTINCT ON (content) content, created_at
-         FROM chat_messages
-         WHERE user_id = $1 AND role = 'user'
-         ORDER BY content, created_at DESC
-       ) sub
-       ORDER BY created_at DESC
-       LIMIT 10`,
+      `SELECT id, title FROM conversations 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 15`,
       [req.user.id]
     );
-    res.json(result.rows.map(r => r.content));
+    res.json(result.rows); // [{id, title}]
   } catch (error) {
     console.error('Recent chats error:', error);
     res.status(500).json({ error: error.message });

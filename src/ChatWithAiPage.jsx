@@ -185,6 +185,7 @@ function ChatWithAiPage({ toAppHref, profile }) {
   const [isThinking, setIsThinking] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [recentChats, setRecentChats] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
   const firstName = profile?.name ? profile.name.split(' ')[0] : 'MANZI';
 
   useEffect(() => {
@@ -245,13 +246,20 @@ function ChatWithAiPage({ toAppHref, profile }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ messages: nextMessages, userId: profile?.id }),
+        body: JSON.stringify({ 
+          messages: nextMessages, 
+          userId: profile?.id,
+          conversationId: activeConversationId 
+        }),
       });
 
       const data = await response.json();
       
       if (response.ok) {
         setMessages((prev) => [...prev, { role: 'assistant', text: data.text }]);
+        if (data.conversationId) {
+          setActiveConversationId(data.conversationId);
+        }
         // Refresh recents
         if (profile?.id) {
           const recentsRes = await fetch(`/api/ai/recent/${profile.id}`, {
@@ -284,16 +292,18 @@ function ChatWithAiPage({ toAppHref, profile }) {
 
   function handleNewChat() {
     setMessages([]);
+    setActiveConversationId(null);
     setIsSidebarOpen(false);
   }
 
-  async function handleLoadChat(chatTitle) {
+  async function handleLoadChat(chat) {
     if (!profile?.id) return;
     setIsThinking(true);
     setIsSidebarOpen(false);
+    setActiveConversationId(chat.id);
     try {
       const token = localStorage.getItem('codefolio_token');
-      const response = await fetch(`/api/ai/history/${profile.id}?query=${encodeURIComponent(chatTitle)}`, {
+      const response = await fetch(`/api/ai/history/${profile.id}?conversationId=${chat.id}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -341,13 +351,13 @@ function ChatWithAiPage({ toAppHref, profile }) {
         <div className="chat-ai-sidebar__recent">
           <h3 className="chat-ai-sidebar__recent-title">Recent</h3>
           <nav className="chat-ai-sidebar__nav">
-             {recentChats.map((chat, idx) => (
+             {recentChats.map((chat) => (
                <button 
-                 key={`${chat}-${idx}`} 
-                 className="chat-ai-sidebar__nav-item"
+                 key={chat.id} 
+                 className={`chat-ai-sidebar__nav-item ${activeConversationId === chat.id ? 'chat-ai-sidebar__nav-item--active' : ''}`}
                  onClick={() => handleLoadChat(chat)}
                >
-                 {chat}
+                 {chat.title}
                </button>
              ))}
           </nav>
