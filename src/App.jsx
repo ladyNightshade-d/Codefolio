@@ -1649,69 +1649,46 @@ function LandingPage({ projects, toAppHref }) {
 }
 
 function ShowcasePreview({ collection }) {
-  if (collection.fallbackPreview === 'aura') {
-    return (
-      <div
-        className="showcase-preview showcase-preview--aura"
-        role="img"
-        aria-label={collection.imageAlt}
-      >
-        <img
-          className="showcase-preview__ghost"
-          src={collection.image}
-          alt=""
-          aria-hidden="true"
-        />
-        <div className="showcase-preview__screen">
-          <div className="showcase-preview__play">
-            <div className="showcase-preview__play-circle" />
-          </div>
-          <div className="showcase-preview__slider">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="showcase-preview__controls">
-            <span />
-            <span className="showcase-preview__controls--active" />
-            <span />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (collection.fallbackPreview === 'flowstate') {
-    return (
-      <div
-        className="showcase-preview showcase-preview--flowstate"
-        role="img"
-        aria-label={collection.imageAlt}
-      >
-        <img
-          className="showcase-preview__ghost"
-          src={collection.image}
-          alt=""
-          aria-hidden="true"
-        />
-        <div className="showcase-preview__panel">
-          <span className="showcase-preview__label">Modern</span>
-          <span className="showcase-preview__title">flowstate</span>
-          <div className="showcase-preview__field" />
-          <div className="showcase-preview__field showcase-preview__field--wide" />
-          <div className="showcase-preview__button" />
-        </div>
-      </div>
-    );
+  const projects = collection.items || [];
+  const displayImages = [];
+  
+  // Collect unique images from projects and their galleries
+  const seenImages = new Set();
+  for (const p of projects) {
+    const mainImg = p.image_url || p.image;
+    if (mainImg && !seenImages.has(mainImg)) {
+      displayImages.push(mainImg);
+      seenImages.add(mainImg);
+    }
+    if (displayImages.length >= 3) break;
+    
+    const gallery = Array.isArray(p.gallery) ? p.gallery : [];
+    for (const g of gallery) {
+      if (g && !seenImages.has(g)) {
+        displayImages.push(g);
+        seenImages.add(g);
+      }
+      if (displayImages.length >= 3) break;
+    }
+    if (displayImages.length >= 3) break;
   }
 
   return (
-    <img
-      className="showcase-preview showcase-preview--image"
-      src={collection.image}
-      alt={collection.imageAlt}
-      loading="lazy"
-    />
+    <div className={`profile-page__collection-stack profile-page__collection-stack--${displayImages.length || 1}`} style={{ width: '100%', height: '100%' }}>
+      {displayImages.length > 0 ? (
+        displayImages.map((img, idx) => (
+          <img
+            key={idx}
+            className={`profile-page__stack-item profile-page__stack-item--${idx + 1}`}
+            src={img}
+            alt=""
+            style={{ borderRadius: '12px' }}
+          />
+        ))
+      ) : (
+        <div className="profile-page__collection-placeholder" style={{ width: '100%', height: '100%', background: '#f5f5f5', borderRadius: '12px' }} />
+      )}
+    </div>
   );
 }
 
@@ -1772,42 +1749,50 @@ function ShowcasesPage({ searchTerm = '', collections = [] }) {
         </div>
 
         <div className="showcases-grid">
-          {visibleCollections.map((collection) => (
-            <article key={collection.title} className="showcase-card">
-              <div className="showcase-card__media">
-                <ShowcasePreview collection={collection} />
-              </div>
-
-              <div className="showcase-card__content">
-                <div>
-                  <h2 className="showcase-card__title">{collection.title}</h2>
-                  <div className="showcase-card__author">
-                    <span
-                      aria-hidden="true"
-                      className="showcase-card__avatar"
-                      style={{ '--avatar-fill': collection.avatar }}
-                    />
-                    <span>{collection.author}</span>
-                  </div>
+          {visibleCollections.length > 0 ? (
+            visibleCollections.map((collection) => (
+              <article key={collection.title} className="showcase-card">
+                <div className="showcase-card__media" style={{ overflow: 'visible' }}>
+                  <ShowcasePreview collection={collection} />
                 </div>
 
-                <button
-                  className="showcase-card__favorite"
-                  type="button"
-                  aria-label={`Save ${collection.title}`}
-                >
-                  <HeartIcon />
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="showcase-card__content">
+                  <div>
+                    <h2 className="showcase-card__title">{collection.title}</h2>
+                    <div className="showcase-card__author">
+                      <span
+                        aria-hidden="true"
+                        className="showcase-card__avatar"
+                        style={{ '--avatar-fill': collection.avatar }}
+                      />
+                      <span>{collection.author}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    className="showcase-card__favorite"
+                    type="button"
+                    aria-label={`Save ${collection.title}`}
+                  >
+                    <HeartIcon />
+                  </button>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="no-projects-message" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 0', color: '#666' }}>
+              <p>No collections found matching your criteria.</p>
+            </div>
+          )}
         </div>
 
-        <div className="showcases-page__footer">
-          <button className="load-more-button load-more-button--soft" type="button">
-            Load more
-          </button>
-        </div>
+        {visibleCollections.length > 8 && (
+          <div className="showcases-page__footer">
+            <button className="load-more-button" type="button">
+              Load more
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
