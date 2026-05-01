@@ -1642,11 +1642,11 @@ select:autofill {
 
 .showcase-card__title {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 600;
   letter-spacing: -0.035em;
-  color: #191919;
+  color: #222222;
 }
 
 .showcase-card__author {
