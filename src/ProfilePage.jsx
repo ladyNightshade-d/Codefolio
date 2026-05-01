@@ -552,14 +552,6 @@ function ProfilePage({
               if (displayImages.length >= 3) break;
             }
 
-            // Fallback to distinct placeholders
-            const placeholders = ['/12.png', '/11.png', '/10.png'];
-            for (let i = 0; i < 3; i++) {
-              if (!displayImages[i]) {
-                displayImages[i] = placeholders[i];
-              }
-            }
-
             return (
               <article key={collection.id || collection.title} className="profile-page__shot-card" style={{ overflow: 'visible' }}>
                 <div className="profile-page__project-menu profile-page__collection-menu">
@@ -614,22 +606,19 @@ function ProfilePage({
                   onClick={() => onViewCollection(collection)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <div className="profile-page__collection-media">
-                    <img
-                      className="profile-page__collection-image profile-page__collection-image--1"
-                      src={displayImages[0]}
-                      alt=""
-                    />
-                    <img
-                      className="profile-page__collection-image profile-page__collection-image--2"
-                      src={displayImages[1]}
-                      alt=""
-                    />
-                    <img
-                      className="profile-page__collection-image profile-page__collection-image--3"
-                      src={displayImages[2]}
-                      alt=""
-                    />
+                  <div className={`profile-page__collection-media profile-page__collection-media--${displayImages.length || 1}`}>
+                    {displayImages.length > 0 ? (
+                      displayImages.map((img, idx) => (
+                        <img
+                          key={idx}
+                          className={`profile-page__collection-image profile-page__collection-image--${idx + 1}`}
+                          src={img}
+                          alt=""
+                        />
+                      ))
+                    ) : (
+                      <div className="profile-page__collection-placeholder" />
+                    )}
                   </div>
                 </div>
 
