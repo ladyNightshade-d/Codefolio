@@ -145,5 +145,14 @@ export const api = {
       headers: getHeaders()
     });
     return res.json();
+  },
+  
+  updateShowcase: async (id, showcaseData) => {
+    const res = await fetch(`${API_BASE_URL}/showcases/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(showcaseData)
+    });
+    return res.json();
   }
 };

@@ -363,6 +363,37 @@ app.delete('/api/showcases/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/showcases/:id', authenticateToken, async (req, res) => {
+  const { title, description, image_url, platform, project_ids } = req.body;
+  try {
+    // Verify ownership
+    const check = await query('SELECT author_id FROM showcases WHERE id = $1', [req.params.id]);
+    if (check.rows.length === 0) return res.status(404).json({ error: 'Showcase not found' });
+    if (check.rows[0].author_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    const result = await query(`
+      UPDATE showcases 
+      SET title = $1, description = $2, image_url = $3, platform = $4
+      WHERE id = $5
+      RETURNING *
+    `, [title, description, image_url, platform, req.params.id]);
+    
+    const showcase = result.rows[0];
+    
+    if (project_ids && Array.isArray(project_ids)) {
+      // Refresh relationships
+      await query('DELETE FROM showcase_projects WHERE showcase_id = $1', [showcase.id]);
+      for (const pid of project_ids) {
+        await query(`INSERT INTO showcase_projects (showcase_id, project_id) VALUES ($1, $2)`, [showcase.id, pid]);
+      }
+    }
+    
+    res.json(showcase);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create/Update Project
 app.post('/api/projects', authenticateToken, async (req, res) => {
   // Frontend sends data nested under formData — merge it with top-level fields

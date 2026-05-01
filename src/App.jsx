@@ -2276,6 +2276,7 @@ function App() {
   const [isRouting, setIsRouting] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [viewingCollection, setViewingCollection] = useState(null);
+  const [editingCollection, setEditingCollection] = useState(null);
 
   const showNotification = (message, duration = 5000) => {
     setNotification(message);
@@ -2304,6 +2305,17 @@ function App() {
         items: s.projects || []
       })));
     }
+  };
+
+  const handleEditCollection = (collection) => {
+    setEditingCollection(collection);
+    setSelectedPlatform(collection.platform || 'web');
+    setSelectedPlatformLabel(
+      collection.platform === 'web' ? 'Web Application' : 
+      collection.platform === 'mobile' ? 'Mobile Application' : 
+      collection.platform === 'design' ? 'UI/UX Design' : 'Select Platform'
+    );
+    setIsCreatingCollection(true);
   };
 
   useEffect(() => {
@@ -2941,8 +2953,11 @@ function App() {
           <div className="modal-overlay">
             <div className="collection-modal">
               <header className="collection-modal__header">
-                <h2>Create New Collection</h2>
-                <button className="collection-modal__close" onClick={() => setIsCreatingCollection(false)}>
+                <h2>{editingCollection ? 'Edit Collection' : 'Create New Collection'}</h2>
+                <button className="collection-modal__close" onClick={() => {
+                  setIsCreatingCollection(false);
+                  setEditingCollection(null);
+                }}>
                   <CloseIcon />
                 </button>
               </header>
@@ -2951,24 +2966,29 @@ function App() {
                 const formData = new FormData(e.target);
                 const projectIds = Array.from(formData.getAll('projects'));
                 
-                showNotification('Creating collection...');
+                showNotification(editingCollection ? 'Updating collection...' : 'Creating collection...');
                 
                 const selectedProjects = currentUserProjects.filter(p => projectIds.includes(p.id.toString()));
                 const firstProjectImage = selectedProjects[0]?.image || '/12.png';
 
-                const res = await api.createShowcase({
+                const payload = {
                   title: formData.get('title'),
                   description: formData.get('description'),
                   platform: formData.get('platform'),
                   image_url: firstProjectImage,
                   project_ids: projectIds
-                });
+                };
+
+                const res = editingCollection 
+                  ? await api.updateShowcase(editingCollection.id, payload)
+                  : await api.createShowcase(payload);
                 
                 if (res.error) {
                   showNotification('Error: ' + res.error);
                 } else {
-                  showNotification('Collection created!');
+                  showNotification(editingCollection ? 'Collection updated!' : 'Collection created!');
                   setIsCreatingCollection(false);
+                  setEditingCollection(null);
                   setProjectSearchTerm('');
                   // Refresh data
                   const dbShowcases = await api.getShowcases();
@@ -2984,11 +3004,11 @@ function App() {
               }}>
                 <label className="collection-modal__field">
                   <span>Collection Title</span>
-                  <input name="title" required />
+                  <input name="title" defaultValue={editingCollection?.title} required />
                 </label>
                 <label className="collection-modal__field">
                   <span>Description</span>
-                  <textarea name="description" />
+                  <textarea name="description" defaultValue={editingCollection?.description} />
                 </label>
                 <label className="collection-modal__field">
                   <span>Platform</span>
@@ -3040,7 +3060,12 @@ function App() {
                       .filter(p => p.title.toLowerCase().includes(projectSearchTerm.toLowerCase()))
                       .map(p => (
                       <label key={p.id} className="collection-modal__project-item">
-                        <input type="checkbox" name="projects" value={p.id} />
+                        <input 
+                          type="checkbox" 
+                          name="projects" 
+                          value={p.id} 
+                          defaultChecked={editingCollection?.items?.some(item => item.id === p.id)} 
+                        />
                         <span className="collection-modal__project-name">{p.title}</span>
                       </label>
                     ))}
@@ -3051,8 +3076,11 @@ function App() {
                 </div>
                 
                 <div className="collection-modal__footer">
-                  <button type="button" onClick={() => setIsCreatingCollection(false)}>Cancel</button>
-                  <button type="submit" className="collection-modal__save">Save Collection</button>
+                  <button type="button" onClick={() => {
+                    setIsCreatingCollection(false);
+                    setEditingCollection(null);
+                  }}>Cancel</button>
+                  <button type="submit" className="collection-modal__save">{editingCollection ? 'Update Collection' : 'Save Collection'}</button>
                 </div>
               </form>
             </div>
@@ -3088,6 +3116,7 @@ function App() {
             onEditProject={handleEditProject}
             onCreateCollection={() => setIsCreatingCollection(true)}
             onDeleteCollection={handleDeleteCollection}
+            onEditCollection={handleEditCollection}
             onViewCollection={setViewingCollection}
           />
         ) : isContributorProfilePage ? (

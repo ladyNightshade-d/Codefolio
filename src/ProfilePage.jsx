@@ -281,11 +281,13 @@ function ProfilePage({
   onEditProject,
   onCreateCollection,
   onDeleteCollection,
+  onEditCollection,
   onViewCollection,
 }) {
   const menuRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openProjectMenuSlug, setOpenProjectMenuSlug] = useState(null);
+  const [openCollectionMenuId, setOpenCollectionMenuId] = useState(null);
   const resolveHref = typeof toAppHref === 'function' ? toAppHref : (path) => path;
   const profileName = profile?.name || 'Codefolio User';
   const profileLocation = profile?.location || 'Location not set';
@@ -311,6 +313,7 @@ function ProfilePage({
 
       if (!isInsideProjectMenu) {
         setOpenProjectMenuSlug(null);
+        setOpenCollectionMenuId(null);
       }
     }
 
@@ -318,6 +321,7 @@ function ProfilePage({
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
         setOpenProjectMenuSlug(null);
+        setOpenCollectionMenuId(null);
       }
     }
 
@@ -539,17 +543,51 @@ function ProfilePage({
                       alt={collection.title}
                       loading="lazy"
                     />
-                    <div className="profile-page__shot-overlay">
-                       <button 
-                        className="profile-page__delete-collection" 
+                    <div className="profile-page__project-menu profile-page__collection-menu">
+                      <button
+                        className="profile-page__project-menu-button"
+                        type="button"
+                        aria-label={`Open actions for ${collection.title}`}
+                        aria-expanded={openCollectionMenuId === collection.id}
+                        aria-haspopup="menu"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteCollection(collection.id);
+                          setOpenCollectionMenuId((currentId) =>
+                            currentId === collection.id ? null : collection.id
+                          );
                         }}
-                        title="Delete Collection"
-                       >
-                         <TrashIcon />
-                       </button>
+                      >
+                        <VerticalDotsIcon />
+                      </button>
+
+                      {openCollectionMenuId === collection.id ? (
+                        <div className="profile-page__project-menu-dropdown" role="menu" aria-label={`${collection.title} actions`}>
+                          <button
+                            className="profile-page__project-menu-item"
+                            type="button"
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenCollectionMenuId(null);
+                              onEditCollection?.(collection);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="profile-page__project-menu-item profile-page__project-menu-item--danger"
+                            type="button"
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenCollectionMenuId(null);
+                              onDeleteCollection?.(collection.id);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
