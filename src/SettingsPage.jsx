@@ -175,8 +175,8 @@ const defaultEducationItems = [
   },
 ];
 
-function serializeList(items = []) {
-  return items.join(', ');
+function serializeList(items) {
+  return (items || []).join(', ');
 }
 
 function normalizeListInput(value, { lowercase = false } = {}) {

@@ -1028,3 +1028,19 @@
     font-size: 0.95rem;
   }
 }
+
+.profile-page__collections-container {
+  display: grid;
+  gap: 18px;
+}
+
+.profile-page__add-project-button--collection {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
+}
+
+.profile-page__add-project-button--collection:hover {
+  background: #333 !important;
+}
+

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { api } from './api';
 import DashboardPage, { DashboardHeader } from './DashboardPage.jsx';
 import ChatWithAiPage from './ChatWithAiPage.jsx';
 import InfoPage from './InfoPage.jsx';
@@ -824,35 +824,31 @@ const defaultNotificationPreferences = {
   newProjectsInYourStack: false,
 };
 
-const currentUserSeed = {
-  slug: 'manzi-shimwa-yves-seraphin',
-  username: 'manzi-shimwa-yves-seraphin',
-  accountEmail: 'myvesseraphin@gmail.com',
-  name: 'MANZI SHIMWA Yves Seraphin',
-  role: 'Senior Product Engineer',
-  location: 'Kigali, Rwanda',
-  headline: 'builds polished web products grounded in clean systems thinking.',
-  bio: 'Senior Developer specializing in clean architecture and performant web applications. Passionate about design systems and user experience.',
-  image: '/me.png',
-  skills: ['React', 'Node.js', 'Design Systems'],
-  specialties: ['web', 'ai'],
+const emptyGuestUser = {
+  id: null,
+  slug: null,
+  username: null,
+  accountEmail: null,
+  name: null,
+  role: null,
+  location: null,
+  headline: null,
+  bio: null,
+  image: null,
+  avatar_url: null,
+  skills: [],
+  specialties: [],
   contact: {
-    email: 'yves@gmail.com',
-    phone: '+250 78-000-0000',
-    website: 'https://yves.dev',
+    email: '',
+    phone: '',
+    website: '',
     github: '',
     linkedin: '',
   },
-  education: [
-    {
-      id: 'education-1',
-      title: 'Rwanda Coding Academy',
-      meta: 'Software Engineering',
-      period: '2021 - Present',
-    },
-  ],
+  education: [],
   notifications: defaultNotificationPreferences,
 };
+
 
 const currentUserProjectSeeds = [
   {
@@ -980,6 +976,7 @@ function buildCurrentUserContributor(profile) {
       linkedin: profile.contact?.linkedin || '',
       email: profile.contact?.email || profile.accountEmail || '',
     },
+    education: profile.education || [],
   };
 }
 
@@ -987,12 +984,12 @@ function buildContributorDirectory(currentUserProfile, allContributors = []) {
   // Only use contributors from backend, no fallback to dummy seed data
   const baseContributors = allContributors;
   
-  // Build objects and ensure every one has a slug
+  // Build objects and ensure every one has a slug — preserve the UUID id as slug
   const directory = [
     buildCurrentUserContributor(currentUserProfile), 
     ...baseContributors.map(c => ({
       ...c,
-      slug: c.slug || (c.name ? slugify(c.name) : c.id) || 'unknown'
+      slug: c.slug || c.id || 'unknown'  // Keep UUID slug, don't re-slugify name
     }))
   ];
   
@@ -1011,7 +1008,7 @@ function buildContributorDirectory(currentUserProfile, allContributors = []) {
 }
 
 function buildProjectStack(techStack) {
-  return techStack.join(' - ');
+  return (techStack || []).join(' - ');
 }
 
 function slugify(value) {
@@ -1123,9 +1120,6 @@ function createSeedProjectRecord(seedProject, ownerContributor) {
 
 const initialProjectRecords = projectRecords.map((project, index) =>
   normalizeProjectRecord(project, index)
-);
-const initialCurrentUserProjects = currentUserProjectSeeds.map((project) =>
-  createSeedProjectRecord(project, buildCurrentUserContributor(currentUserSeed))
 );
 
 function getVisibleShowcaseCollections(activePlatform, activeSort, collections = []) {
@@ -1591,7 +1585,7 @@ function LandingPage({ projects, toAppHref }) {
 
           <div className="projects-grid">
             {filteredProjects.length > 0 ? (
-              filteredProjects.map((project) => (
+              filteredProjects.slice(0, 8).map((project) => (
                 <article key={project.title} className="project-card">
                   <a 
                     className="project-card__link" 
@@ -1625,8 +1619,12 @@ function LandingPage({ projects, toAppHref }) {
 
           {filteredProjects.length > 8 && (
             <div className="projects-section__footer">
-              <button className="load-more-button" type="button">
-                <span>Load more</span>
+              <button 
+                className="load-more-button" 
+                type="button"
+                onClick={() => navigateTo('/showcases')}
+              >
+                <span>Explore all showcases</span>
                 <ChevronDownIcon />
               </button>
             </div>
@@ -1718,7 +1716,7 @@ function ShowcasePreview({ collection }) {
 }
 
 function ShowcasesPage({ searchTerm = '', collections = [] }) {
-  const [activePlatform, setActivePlatform] = useState('mobile');
+  const [activePlatform, setActivePlatform] = useState('web');
   const [activeSort, setActiveSort] = useState('featured');
   const visibleCollections = getVisibleShowcaseCollections(activePlatform, activeSort, collections).filter(c => 
     !searchTerm || 
@@ -1815,14 +1813,17 @@ function ShowcasesPage({ searchTerm = '', collections = [] }) {
   );
 }
 
-function CloseIcon() {
+function CloseIcon({ className = "modal-close-icon" }) {
   return (
     <svg
       aria-hidden="true"
-      className="project-detail__close-icon"
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d="M7 7 17 17" />
       <path d="M17 7 7 17" />
@@ -1832,7 +1833,27 @@ function CloseIcon() {
 
 function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug }) {
   const [activeGalleryPage, setActiveGalleryPage] = useState(0);
-  const primaryMember = project.team[0] || null;
+
+  useEffect(() => {
+    setActiveGalleryPage(0);
+  }, [project?.slug]);
+
+  if (!project) {
+    return (
+      <section className="project-detail-page">
+        <div className="container container--project-detail">
+          <header className="project-detail__hero">
+            <div className="project-detail__hero-bar">
+              <h1 className="project-detail__title">&nbsp;</h1>
+              <button className="project-detail__close" type="button" onClick={onClose}><CloseIcon /></button>
+            </div>
+          </header>
+        </div>
+      </section>
+    );
+  }
+
+  const primaryMember = project.team?.[0] || null;
   const primaryContributor = primaryMember?.slug ? findContributorBySlug(primaryMember.slug) : null;
   const primaryContributorProfileHref = primaryMember?.slug
     ? toAppHref(getContributorProfilePath(primaryMember.slug))
@@ -1850,10 +1871,6 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
   );
   const hasGalleryControls = galleryPageCount > 1;
   const projectYear = project.cohort ? (project.cohort.match(/\d{4}/)?.[0] || project.cohort) : '';
-
-  useEffect(() => {
-    setActiveGalleryPage(0);
-  }, [project.slug]);
 
   function handlePreviousGalleryImage() {
     setActiveGalleryPage((currentPage) =>
@@ -1884,7 +1901,7 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
               onClick={onClose}
               aria-label="Close project description"
             >
-              <CloseIcon />
+              <CloseIcon className="project-detail__close-icon" />
             </button>
           </div>
 
@@ -2042,17 +2059,7 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
                 {paragraph}
               </p>
             ))}
-            <div className="project-detail__innovation-card">
-              <h3 className="project-detail__innovation-title">Key Innovations</h3>
-              <div className="project-detail__innovation-list">
-                {project.innovations.map((innovation) => (
-                  <div key={innovation} className="project-detail__innovation-item">
-                    <CheckCircleIcon />
-                    <p>{innovation}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+
             {project.keyFeatures && project.keyFeatures.length > 0 && (
               <div className="project-detail__innovation-card" style={{ marginTop: '24px' }}>
                 <h3 className="project-detail__innovation-title">Key Features</h3>
@@ -2243,13 +2250,22 @@ function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedUser = localStorage.getItem('codefolio_user');
-      return savedUser ? JSON.parse(savedUser) : currentUserSeed;
+      const token = localStorage.getItem('codefolio_token');
+      if (savedUser && token) {
+        return JSON.parse(savedUser);
+      }
     }
-    return currentUserSeed;
+    return emptyGuestUser;
   });
+
   const [projects, setProjects] = useState([]);
   const [allContributors, setAllContributors] = useState([]);
   const [allShowcases, setAllShowcases] = useState([]);
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [projectSearchTerm, setProjectSearchTerm] = useState('');
+  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState('web');
+  const [selectedPlatformLabel, setSelectedPlatformLabel] = useState('Web Application');
   const [activeProfileTab, setActiveProfileTab] = useState('work');
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -2258,11 +2274,35 @@ function App() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [viewingCollection, setViewingCollection] = useState(null);
 
   const showNotification = (message, duration = 5000) => {
     setNotification(message);
     if (duration) {
       setTimeout(() => setNotification(null), duration);
+    }
+  };
+
+  const handleDeleteCollection = async (id) => {
+    if (!confirm("Are you sure you want to delete this collection?")) return;
+    
+    showNotification('Deleting collection...');
+    const res = await api.deleteShowcase(id);
+    if (res.error) {
+      showNotification('Error: ' + res.error);
+    } else {
+      showNotification('Collection deleted');
+      // Refresh
+      const dbShowcases = await api.getShowcases();
+      setAllShowcases(dbShowcases.map(s => ({
+        ...s,
+        author: s.author_name || 'Community',
+        avatar: s.author_avatar || '#000',
+        image: s.image_url || '/12.png',
+        imageAlt: s.title,
+        items: s.projects || []
+      })));
     }
   };
 
@@ -2296,78 +2336,129 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // Handle Google Auth Callback
+    if (pathname.startsWith('/auth-callback')) {
+      const params = new URLSearchParams(window.location.hash.split('?')[1]);
+      const token = params.get('token');
+      const userJson = params.get('user');
+
+      if (token && userJson) {
+        try {
+          const user = JSON.parse(decodeURIComponent(userJson));
+          const mappedUser = {
+            ...user,
+            accountEmail: user.email,
+            image: user.avatar_url
+          };
+          
+          localStorage.setItem('codefolio_token', token);
+          localStorage.setItem('codefolio_user', JSON.stringify(mappedUser));
+          setCurrentUser(mappedUser);
+          
+          showNotification('Successfully signed in with Google');
+          window.location.hash = '#/dashboard';
+        } catch (error) {
+          console.error('Error parsing auth callback data:', error);
+          showNotification('Authentication failed');
+          window.location.hash = '#/login';
+        }
+      }
+    }
+  }, [pathname]);
+
+  useEffect(() => {
     // Show a welcome notification if it's the first visit
     if (pathname === '/' && !sessionStorage.getItem('welcome-shown')) {
       showNotification('Welcome to Codefolio! Discover and showcase engineering projects.');
       sessionStorage.setItem('welcome-shown', 'true');
     }
 
-    // Use static data instead of fetching from API
-    setProjects(initialProjectRecords);
-    setAllContributors(contributors);
-    setAllShowcases(showcaseCollections);
-
-    // Custom Session Initializer
-    if (currentUser && (currentUser.id || currentUser.accountEmail || currentUser.email) && currentUser.id !== currentUserSeed.id) {
-      const fetchUserData = async () => {
-        // 1. Refresh profile
-        let query = supabase.from('users').select('*');
+    // Initial fetch for public projects and contributors
+    const fetchPublicData = async () => {
+      try {
+        const [dbProjects, dbContributors, dbShowcases] = await Promise.all([
+          api.getProjects(),
+          api.getContributors(),
+          api.getShowcases()
+        ]);
         
-        if (currentUser.id && currentUser.id !== 'undefined') {
-          query = query.eq('id', currentUser.id);
-        } else if (currentUser.accountEmail || currentUser.email) {
-          query = query.eq('email', currentUser.accountEmail || currentUser.email);
-        } else {
-          return; // Can't fetch without ID or email
+        if (Array.isArray(dbShowcases)) {
+          setAllShowcases(dbShowcases.map(s => ({
+            ...s,
+            author: s.author_name || 'Community',
+            avatar: s.author_avatar || '#000',
+            image: s.image_url || '/12.png',
+            imageAlt: s.title,
+            items: s.projects || []
+          })));
         }
-
-        const { data: profile } = await query.single();
-
-        if (profile) {
-          const mappedUser = {
-            ...currentUser,
-            ...profile,
-            image: profile.avatar_url,
-            contact: {
-              email: profile.contact_email || '',
-              phone: profile.phone_number || '',
-              website: profile.website_url || '',
-              github: profile.github_url || '',
-              linkedin: profile.linkedin_url || '',
-            }
-          };
-          setCurrentUser(mappedUser);
-        }
-
-        // 2. Fetch projects
-        const { data: dbProjects } = await supabase
-          .from('projects')
-          .select('*, users(name, avatar_url)')
-          .or(`visibility.eq.published,author_id.eq.${currentUser.id}`);
 
         if (dbProjects) {
-          const mappedProjects = dbProjects.map(p => ({
+          // Helper: convert any DB value to an array
+          const toArray = (val) => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            try { const parsed = JSON.parse(val); if (Array.isArray(parsed)) return parsed; } catch {}
+            return val.split('\n').map(s => s.trim()).filter(Boolean);
+          };
+
+          setProjects(dbProjects.map(p => ({
             ...p,
             ownerSlug: p.author_id,
-            techStack: p.tech_stack,
+            ownerUsername: p.users?.username,
+            techStack: toArray(p.tech_stack),
             image: p.image_url,
-            gallery: p.gallery,
+            gallery: toArray(p.gallery),
             cohort: p.year,
             course: p.event,
-            problem: p.problem_statements,
-            solution: p.solution_statements,
-            innovations: p.innovations,
-            keyFeatures: p.key_features,
+            problem: toArray(p.problem_statements),
+            solution: toArray(p.solution_statements),
+            innovations: toArray(p.innovations),
+            keyFeatures: toArray(p.key_features),
             repositoryUrl: p.repository_url,
             liveDemoUrl: p.live_demo_url,
-            team: [{ slug: p.author_id, name: p.users.name, image: p.users.avatar_url, role: 'Lead' }]
-          }));
-          setProjects(mappedProjects);
+            team: (() => {
+              // Use saved teamMembers if available, otherwise fall back to author
+              const saved = toArray(p.team_members);
+              if (saved.length > 0) return saved;
+              return [{ slug: p.author_id, name: p.users?.name || 'Unknown', image: p.users?.avatar_url, role: 'Lead' }];
+            })()
+          })));
         }
-      };
 
-      fetchUserData();
+        if (dbContributors) {
+          setAllContributors(dbContributors.map(c => ({
+            ...c,
+            slug: c.id,
+            image: c.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || 'U')}&background=random&color=fff&rounded=true`,
+            role: c.role || 'Contributor',
+            location: c.location || '',
+            skills: Array.isArray(c.skills) ? c.skills : (c.skills ? [c.skills] : []),
+            specialties: Array.isArray(c.specialties) ? c.specialties : (c.specialties ? [c.specialties] : []),
+            contact: {
+              email: c.contact_email || c.email,
+              github: c.github_url,
+              linkedin: c.linkedin_url,
+              website: c.website_url,
+            }
+          })));
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    fetchPublicData();
+
+
+    // User session data refresh (legacy)
+    if (currentUser && currentUser.id && currentUser.id !== emptyGuestUser.id) {
+       // Profile and projects are now largely managed via API
     }
+
+
   }, [pathname, currentUser?.id]);
 
   const contributorDirectory = buildContributorDirectory(currentUser, allContributors);
@@ -2378,6 +2469,7 @@ function App() {
       )
     : projects;
   const publishedProjects = filteredProjects.filter((project) => project.visibility !== 'draft');
+  const currentUserCollections = allShowcases.filter(s => s.author_id === currentUser.id);
 
   const filteredContributors = isSearchActive
     ? contributorDirectory.filter((c) => 
@@ -2400,27 +2492,31 @@ function App() {
       window.history.pushState({}, '', toAppHref(path));
       // Manually trigger a popstate event since pushState doesn't do it
       window.dispatchEvent(new PopStateEvent('popstate'));
+      // Always scroll to top on navigation
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }
 
   async function handleSaveGeneral(nextGeneralSettings) {
-    const { error } = await supabase
-      .from('users')
-      .update({
-        username: nextGeneralSettings.username,
-      })
-      .eq('id', currentUser.id);
+    try {
+      const updatedUser = await api.updateGeneral(nextGeneralSettings);
 
-    if (error) {
-      showNotification('Error updating settings: ' + error.message);
-    } else {
-      showNotification('Settings updated successfully');
-      setCurrentUser((currentProfile) => ({
-        ...currentProfile,
-        username: nextGeneralSettings.username || currentProfile.username,
-      }));
+      if (updatedUser.error) {
+        showNotification('Error updating settings: ' + updatedUser.error);
+      } else {
+        showNotification('Settings updated successfully');
+        const nextProfile = {
+          ...currentUser,
+          username: updatedUser.username,
+        };
+        setCurrentUser(nextProfile);
+        localStorage.setItem('codefolio_user', JSON.stringify(nextProfile));
+      }
+    } catch (err) {
+      showNotification('Failed to update settings: ' + err.message);
     }
   }
+
 
   async function handleSaveProfile(nextProfileData) {
     try {
@@ -2428,122 +2524,52 @@ function App() {
 
       if (nextProfileData.avatarFile) {
         showNotification('Uploading profile picture...');
-        const uploadedUrls = await uploadFiles([nextProfileData.avatarFile], 'avatars');
-        if (uploadedUrls.length > 0) {
-          avatarUrl = uploadedUrls[0];
+        const uploadRes = await api.uploadFile(nextProfileData.avatarFile);
+        if (uploadRes.url) {
+          avatarUrl = uploadRes.url;
         }
       }
 
-      const { error } = await supabase
-        .from('users')
-        .update({
-          name: nextProfileData.name,
-          role: nextProfileData.role,
-          location: nextProfileData.location,
-          headline: nextProfileData.headline,
-          bio: nextProfileData.bio,
-          skills: nextProfileData.skills,
-          specialties: nextProfileData.specialties,
-          avatar_url: avatarUrl,
-          education: nextProfileData.education,
-          contact_email: nextProfileData.contact.email,
-          phone_number: nextProfileData.contact.phone,
-          website_url: nextProfileData.contact.website,
-          github_url: nextProfileData.contact.github,
-          linkedin_url: nextProfileData.contact.linkedin,
-        })
-        .match(currentUser.id && currentUser.id !== 'undefined' ? { id: currentUser.id } : { email: currentUser.accountEmail || currentUser.email });
+      const updatedUser = await api.updateProfile({
+        ...nextProfileData,
+        avatar_url: avatarUrl,
+        contact_email: nextProfileData.contact.email,
+        phone_number: nextProfileData.contact.phone,
+        website_url: nextProfileData.contact.website,
+        github_url: nextProfileData.contact.github,
+        linkedin_url: nextProfileData.contact.linkedin,
+      });
 
-      if (error) {
-        showNotification('Error updating profile: ' + error.message);
+      if (updatedUser.error) {
+        showNotification('Error updating profile: ' + updatedUser.error);
       } else {
         showNotification('Profile updated successfully');
         const nextProfile = {
           ...currentUser,
           ...nextProfileData,
+          ...updatedUser,
           image: avatarUrl,
-          contact: {
-            ...currentUser.contact,
-            ...nextProfileData.contact,
-          },
         };
 
         setCurrentUser(nextProfile);
-        setProjects((currentProjects) =>
-          syncProjectsWithContributor(currentProjects, buildCurrentUserContributor(nextProfile))
-        );
+        localStorage.setItem('codefolio_user', JSON.stringify(nextProfile));
       }
     } catch (err) {
       showNotification('Failed to save profile: ' + err.message);
     }
   }
 
+
   function handleSaveSecurity(nextSecuritySettings) {
-    // Supabase handles password changes via auth.updateUser
-    supabase.auth.updateUser({ password: nextSecuritySettings.password })
-      .then(({ error }) => {
-        if (error) showNotification('Error updating password: ' + error.message);
-        else showNotification('Password updated successfully');
-      });
+    showNotification('Security settings saved locally (Simulation)');
   }
 
   function handleSaveNotifications(nextNotifications) {
-    // Storing notifications preferences in user metadata or a separate column
-    supabase.auth.updateUser({
-      data: { notifications: nextNotifications }
-    }).then(({ error }) => {
-      if (error) showNotification('Error updating notifications: ' + error.message);
-      else {
-        showNotification('Notifications updated successfully');
-        setCurrentUser((currentProfile) => ({
-          ...currentProfile,
-          notifications: nextNotifications,
-        }));
-      }
-    });
+    showNotification('Notification settings saved locally (Simulation)');
   }
 
-  async function uploadFiles(files, bucket = 'projects') {
-    if (!files || files.length === 0) return [];
-    
-    // Ensure we have an array of files/strings
-    const fileArray = Array.from(files);
-    
-    const uploadPromises = fileArray.map(async (file) => {
-      // If it's already a public URL or not a file we can upload, return as is
-      if (typeof file === 'string' && (file.startsWith('http') || !file.startsWith('blob:'))) {
-        return file;
-      }
 
-      // If it's a blob URL, we need the original File object. 
-      // But usually we pass the File object directly to this function.
-      if (!(file instanceof File)) {
-        return typeof file === 'string' ? file : null;
-      }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `${currentUser.id}/${fileName}`;
-      
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file);
-        
-      if (error) {
-        console.error(`Upload error in bucket "${bucket}":`, error);
-        throw error;
-      }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-        
-      return publicUrl;
-    });
-    
-    const results = await Promise.all(uploadPromises);
-    return results.filter(Boolean);
-  }
 
   async function handleSaveDraft(submission) {
     try {
@@ -2553,63 +2579,35 @@ function App() {
       
       if (files && files.length > 0) {
         showNotification('Uploading images...');
-        imageUrls = await uploadFiles(files);
+        const uploadRes = await api.uploadMultiple(files);
+        imageUrls = uploadRes.urls || [];
       }
 
-      const projectData = createProjectFromSubmission({
-        submission: {
-          ...submission,
-          // Replace local blob URLs with remote URLs if upload succeeded
-          files: imageUrls.length > 0 ? [] : submission.files
-        },
+      const projectData = {
+        ...submission,
+        image_url: imageUrls[0] || submission.image,
+        gallery: imageUrls.length > 0 ? imageUrls : submission.gallery,
+        tech_stack: submission.techStack,
         visibility: 'draft',
-        projectList: projects,
-        ownerContributor: buildCurrentUserContributor(currentUser),
-        contributorDirectory,
-      });
+      };
 
-      // Override images with uploaded URLs and add author_id for local state
-      if (imageUrls.length > 0) {
-        projectData.image = imageUrls[0];
-        projectData.gallery = imageUrls;
-      }
-      projectData.author_id = currentUser.id;
-      projectData.ownerSlug = currentUser.id;
+      const result = await api.saveProject(projectData);
 
-      const { error } = await supabase
-        .from('projects')
-        .insert({
-          title: projectData.title,
-          slug: projectData.slug,
-          summary: projectData.summary,
-          image_url: projectData.image,
-          gallery: projectData.gallery,
-          tech_stack: projectData.techStack,
-          status: projectData.status,
-          year: projectData.cohort,
-          event: projectData.course,
-          problem_statements: projectData.problem,
-          solution_statements: projectData.solution,
-          innovations: projectData.innovations,
-          key_features: projectData.keyFeatures,
-          visibility: 'draft',
-          author_id: currentUser.id,
-          repository_url: projectData.repositoryUrl,
-          live_demo_url: projectData.liveDemoUrl,
-        });
-
-      if (error) {
-        showNotification('Error saving draft: ' + error.message);
+      if (result.error) {
+        showNotification('Error saving draft: ' + result.error);
       } else {
         showNotification('Draft saved successfully');
-        setProjects((currentProjects) => [projectData, ...currentProjects]);
+        setProjects((currentProjects) => [result, ...currentProjects]);
         setActiveProfileTab('drafts');
         navigateTo('/profile');
       }
     } catch (err) {
       showNotification('Failed to save draft: ' + err.message);
+    } finally {
+      setIsSavingDraft(false);
     }
   }
+
 
   async function handlePublishProject(submission) {
     try {
@@ -2619,83 +2617,53 @@ function App() {
       
       if (files && files.length > 0) {
         showNotification('Uploading images...');
-        imageUrls = await uploadFiles(files);
+        const uploadRes = await api.uploadMultiple(files);
+        imageUrls = uploadRes.urls || [];
       }
 
-      const projectData = createProjectFromSubmission({
-        submission: {
-          ...submission,
-          files: imageUrls.length > 0 ? [] : submission.files
-        },
+      const projectData = {
+        ...submission,
+        image_url: imageUrls[0] || submission.image,
+        gallery: imageUrls.length > 0 ? imageUrls : submission.gallery,
+        tech_stack: submission.techStack,
         visibility: 'published',
-        projectList: projects,
-        ownerContributor: buildCurrentUserContributor(currentUser),
-        contributorDirectory,
-      });
+      };
 
-      // Override images with uploaded URLs and add author_id for local state
-      if (imageUrls.length > 0) {
-        projectData.image = imageUrls[0];
-        projectData.gallery = imageUrls;
-      }
-      projectData.author_id = currentUser.id;
-      projectData.ownerSlug = currentUser.id;
+      const result = await api.saveProject(projectData);
 
-      console.log('Inserting project into Supabase:', projectData.title);
-      const { error } = await supabase
-        .from('projects')
-        .insert({
-          title: projectData.title,
-          slug: projectData.slug,
-          summary: projectData.summary,
-          image_url: projectData.image,
-          gallery: projectData.gallery,
-          tech_stack: projectData.techStack,
-          status: projectData.status,
-          year: projectData.cohort,
-          event: projectData.course,
-          problem_statements: projectData.problem,
-          solution_statements: projectData.solution,
-          innovations: projectData.innovations,
-          key_features: projectData.keyFeatures,
-          visibility: 'published',
-          author_id: currentUser.id,
-          repository_url: projectData.repositoryUrl,
-          live_demo_url: projectData.liveDemoUrl,
-        });
-
-      if (error) {
-        console.error('Supabase insert error:', error);
-        showNotification('Error publishing project: ' + error.message);
+      if (result.error) {
+        showNotification('Error publishing project: ' + result.error);
       } else {
-        console.log('Project published successfully!');
         showNotification('Project published successfully');
-        setProjects((currentProjects) => [projectData, ...currentProjects]);
+        setProjects((currentProjects) => [result, ...currentProjects]);
         setActiveProfileTab('work');
         navigateTo('/profile');
       }
     } catch (err) {
       showNotification('Failed to publish project: ' + err.message);
+    } finally {
+      setIsPublishing(false);
     }
   }
 
-  async function handleDeleteProject(projectSlug) {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('slug', projectSlug)
-      .eq('author_id', currentUser.id);
 
-    if (error) {
-      showNotification('Error deleting project: ' + error.message);
-    } else {
-      showNotification('Project deleted successfully');
-      setProjects((currentProjects) =>
-        currentProjects.filter(
-          (project) => !(project.ownerSlug === currentUser.slug && project.slug === projectSlug)
-        )
-      );
+  async function handleDeleteProject(projectSlug) {
+    try {
+      const result = await api.deleteProject(projectSlug);
+      if (result.error) {
+        showNotification('Error deleting project: ' + result.error);
+      } else {
+        showNotification('Project deleted successfully');
+        setProjects(current => current.filter(p => p.slug !== projectSlug));
+      }
+    } catch (err) {
+      showNotification('Failed to delete project: ' + err.message);
     }
+  }
+
+
+  function handleEditProject(projectSlug) {
+    navigateTo(`/profile/edit/${projectSlug}`);
   }
 
   function handleSearchSubmit(e) {
@@ -2726,8 +2694,8 @@ function App() {
   const isContributorsPage = pathname === '/contributors';
   const isDashboardContributorsPage = pathname === '/dashboard/contributors';
 
-  // GitHub style profiles: /:username (one part)
-  const isPublicProfilePath = pathname.match(/^\/(?!profile|dashboard|contributors|showcases|terms|privacy|contact|login|signup|logout)([^/]+)$/);
+  // GitHub-style profiles: /contributors/:slug
+  const isPublicProfilePath = pathname.match(/^\/contributors\/([^/]+)$/);
   const activeContributor = isPublicProfilePath
     ? findContributorBySlug(isPublicProfilePath[1])
     : null;
@@ -2745,7 +2713,12 @@ function App() {
   const isProfileUploadDetailsPage = pathname === '/profile/upload/details';
   const isProfileUploadPage = isProfileUploadEntryPage || isProfileUploadDetailsPage;
   
-  const isProfileAreaPage = isProfilePage || isProfileSettingsPage;
+  const editProjectMatch = pathname.match(/^\/profile\/edit\/([^/]+)$/);
+  const editProjectSlug = editProjectMatch ? editProjectMatch[1] : null;
+  const isProfileEditPage = Boolean(editProjectSlug);
+  const editProjectData = isProfileEditPage ? currentUserProjects.find(p => p.slug === editProjectSlug) : null;
+  
+  const isProfileAreaPage = isProfilePage || isProfileSettingsPage || isProfileEditPage;
   
   // Support both /projects/:slug and /:username/:slug
   const projectMatch = pathname.match(/^\/projects\/([^/]+)$/) || 
@@ -2756,6 +2729,7 @@ function App() {
     : null;
   
   const isProjectDetailPage = Boolean(activeProject);
+  const isProjectRoute = Boolean(projectMatch);
 
   function handleCloseProjectDetail() {
     if (typeof window === 'undefined') {
@@ -2771,9 +2745,32 @@ function App() {
   }
 
   if (isLogoutPage) {
-    supabase.auth.signOut().then(() => {
-      window.location.hash = '/';
-    });
+    localStorage.removeItem('codefolio_token');
+    localStorage.removeItem('codefolio_user');
+    window.location.hash = '/';
+    return null;
+  }
+
+
+  const isAuthenticated = Boolean(
+    localStorage.getItem('codefolio_token') && 
+    (currentUser?.id || localStorage.getItem('codefolio_user'))
+  );
+
+  const isPrivatePage =
+    isDashboardPage ||
+    isDashboardChatPage ||
+    isProfilePage ||
+    isProfileSettingsPage ||
+    isProfileUploadPage ||
+    isDashboardShowcasesPage ||
+    isDashboardContributorsPage;
+
+  if (isPrivatePage && !isAuthenticated) {
+    // Redirect to login
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    }
     return null;
   }
 
@@ -2823,12 +2820,13 @@ function App() {
     );
   }
 
-  if (isProfileUploadPage) {
+  if (isProfileUploadPage || isProfileEditPage) {
     return (
       <div className="page-shell page-shell--upload">
         <main>
           <UploadShotPage
-            mode={isProfileUploadDetailsPage ? 'details' : 'upload'}
+            mode={(isProfileUploadDetailsPage || isProfileEditPage) ? 'details' : 'upload'}
+            initialData={isProfileEditPage ? editProjectData : null}
             toAppHref={toAppHref}
             contributorDirectory={contributorDirectory}
             onSaveDraft={handleSaveDraft}
@@ -2897,7 +2895,171 @@ function App() {
           </section>
         ) : null}
 
-        {isProjectDetailPage ? (
+        {viewingCollection && (
+          <div className="modal-overlay">
+            <div className="collection-modal collection-modal--view">
+              <header className="collection-modal__header">
+                <div>
+                  <h2>{viewingCollection.title}</h2>
+                  <p className="collection-modal__subtitle">{viewingCollection.description}</p>
+                </div>
+                <button className="collection-modal__close" onClick={() => setViewingCollection(null)}>
+                  <CloseIcon />
+                </button>
+              </header>
+              <div className="collection-modal__view-projects">
+                <h3>Projects in this collection</h3>
+                <div className="collection-modal__project-list">
+                  {viewingCollection.items.map(p => (
+                    <div key={p.id} className="collection-modal__view-item">
+                      <div className="collection-modal__view-item-image">
+                         <img src={p.image_url || p.image || "/12.png"} alt={p.title} />
+                      </div>
+                      <div className="collection-modal__view-item-info">
+                        <h4>{p.title}</h4>
+                        <p>{p.summary || "No summary provided."}</p>
+                      </div>
+                      <a 
+                        className="collection-modal__view-item-link" 
+                        href={toAppHref(`/${p.ownerUsername || 'projects'}/${p.slug}`)}
+                        onClick={() => setViewingCollection(null)}
+                      >
+                        View Project
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="collection-modal__footer">
+                <button type="button" className="collection-modal__save" onClick={() => setViewingCollection(null)}>Done</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isCreatingCollection && (
+          <div className="modal-overlay">
+            <div className="collection-modal">
+              <header className="collection-modal__header">
+                <h2>Create New Collection</h2>
+                <button className="collection-modal__close" onClick={() => setIsCreatingCollection(false)}>
+                  <CloseIcon />
+                </button>
+              </header>
+              <form className="collection-modal__form" onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const projectIds = Array.from(formData.getAll('projects'));
+                
+                showNotification('Creating collection...');
+                
+                const selectedProjects = currentUserProjects.filter(p => projectIds.includes(p.id.toString()));
+                const firstProjectImage = selectedProjects[0]?.image || '/12.png';
+
+                const res = await api.createShowcase({
+                  title: formData.get('title'),
+                  description: formData.get('description'),
+                  platform: formData.get('platform'),
+                  image_url: firstProjectImage,
+                  project_ids: projectIds
+                });
+                
+                if (res.error) {
+                  showNotification('Error: ' + res.error);
+                } else {
+                  showNotification('Collection created!');
+                  setIsCreatingCollection(false);
+                  setProjectSearchTerm('');
+                  // Refresh data
+                  const dbShowcases = await api.getShowcases();
+                  setAllShowcases(dbShowcases.map(s => ({
+                    ...s,
+                    author: s.author_name || 'Community',
+                    avatar: s.author_avatar || '#000',
+                    image: s.image_url || '/12.png',
+                    imageAlt: s.title,
+                    items: s.projects || []
+                  })));
+                }
+              }}>
+                <label className="collection-modal__field">
+                  <span>Collection Title</span>
+                  <input name="title" required />
+                </label>
+                <label className="collection-modal__field">
+                  <span>Description</span>
+                  <textarea name="description" />
+                </label>
+                <label className="collection-modal__field">
+                  <span>Platform</span>
+                  <div className="collection-modal__custom-select" onClick={() => setIsPlatformDropdownOpen(!isPlatformDropdownOpen)}>
+                    <div className="collection-modal__select-trigger">
+                      <span>{selectedPlatformLabel || 'Select Platform'}</span>
+                      <input type="hidden" name="platform" value={selectedPlatform || 'web'} />
+                      <ChevronDownIcon />
+                    </div>
+                    {isPlatformDropdownOpen && (
+                      <div className="collection-modal__dropdown-options">
+                        {[
+                          { value: 'web', label: 'Web Application' },
+                          { value: 'mobile', label: 'Mobile Application' },
+                          { value: 'design', label: 'UI/UX Design' }
+                        ].map(opt => (
+                          <div 
+                            key={opt.value} 
+                            className={`collection-modal__option ${selectedPlatform === opt.value ? 'collection-modal__option--selected' : ''}`}
+                            onClick={() => {
+                              setSelectedPlatform(opt.value);
+                              setSelectedPlatformLabel(opt.label);
+                              setIsPlatformDropdownOpen(false);
+                            }}
+                          >
+                            {opt.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </label>
+                
+                <div className="collection-modal__projects">
+                  <div className="collection-modal__projects-header">
+                    <h3>Select Projects</h3>
+                    <div className="collection-modal__search collection-modal__search--large">
+                      <SearchIcon />
+                      <input 
+                        type="text" 
+                        placeholder="Search projects..." 
+                        value={projectSearchTerm}
+                        onChange={(e) => setProjectSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="collection-modal__project-list">
+                    {currentUserProjects
+                      .filter(p => p.title.toLowerCase().includes(projectSearchTerm.toLowerCase()))
+                      .map(p => (
+                      <label key={p.id} className="collection-modal__project-item">
+                        <input type="checkbox" name="projects" value={p.id} />
+                        <span className="collection-modal__project-name">{p.title}</span>
+                      </label>
+                    ))}
+                    {currentUserProjects.filter(p => p.title.toLowerCase().includes(projectSearchTerm.toLowerCase())).length === 0 && (
+                      <p className="collection-modal__no-results">No projects found matching your search.</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="collection-modal__footer">
+                  <button type="button" onClick={() => setIsCreatingCollection(false)}>Cancel</button>
+                  <button type="submit" className="collection-modal__save">Save Collection</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {isProjectRoute ? (
           <ProjectDetailPage
             project={activeProject}
             onClose={handleCloseProjectDetail}
@@ -2919,9 +3081,14 @@ function App() {
             toAppHref={toAppHref}
             profile={currentUser}
             projects={currentUserProjects}
+            collections={currentUserCollections}
             activeTab={activeProfileTab}
             onTabChange={setActiveProfileTab}
             onDeleteProject={handleDeleteProject}
+            onEditProject={handleEditProject}
+            onCreateCollection={() => setIsCreatingCollection(true)}
+            onDeleteCollection={handleDeleteCollection}
+            onViewCollection={setViewingCollection}
           />
         ) : isContributorProfilePage ? (
           <PublicProfilePage

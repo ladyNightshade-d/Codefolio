@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from './supabaseClient';
+import { api, GOOGLE_AUTH_URL } from './api';
 import './login.css';
 
 function AuthCodeMark() {
@@ -64,22 +64,11 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
 
     setIsLoading(true);
     try {
-      // Call our custom Express API
-      const response = await fetch('http://localhost:5000/api/auth/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: nextEmail }),
-      });
+      const data = await api.sendCode(nextEmail);
 
-      const data = await response.json();
-      console.log('Auth API Response:', data);
-
-      if (!response.ok) {
-        const msg = data.error || 'Failed to send code';
-        setError(msg);
-        if (typeof showNotification === 'function') {
-          showNotification(msg);
-        }
+      if (data.error) {
+        setError(data.error);
+        if (typeof showNotification === 'function') showNotification(data.error);
       } else {
         setSentTo(nextEmail);
         setStep('code');
@@ -88,11 +77,8 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
         }
       }
     } catch (err) {
-      console.error('Auth Request Error:', err);
-      setError('An unexpected error occurred');
-      if (typeof showNotification === 'function') {
-        showNotification('An unexpected error occurred');
-      }
+      setError('Connection failed');
+      if (typeof showNotification === 'function') showNotification('Connection failed');
     } finally {
       setIsLoading(false);
     }
@@ -106,24 +92,13 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
 
     setIsLoading(true);
     try {
-      // Call our custom Express API
-      const response = await fetch('http://localhost:5000/api/auth/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: sentTo, code: accessCode }),
-      });
+      const data = await api.verifyCode(sentTo, accessCode);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        const msg = data.error || 'Invalid verification code';
-        setError(msg);
-        if (typeof showNotification === 'function') {
-          showNotification(msg);
-        }
+      if (data.error) {
+        setError(data.error);
+        if (typeof showNotification === 'function') showNotification(data.error);
       } else {
         const user = data.user;
-        // Map backend user to frontend format if needed
         const mappedUser = {
           ...user,
           accountEmail: user.email,
@@ -133,22 +108,24 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
         if (typeof showNotification === 'function') {
           showNotification('Successfully signed in');
         }
-        console.log('Verification successful, redirecting to dashboard...');
         window.location.hash = '#/dashboard';
       }
     } catch (err) {
-      setError('An unexpected error occurred.');
-      if (typeof showNotification === 'function') {
-        showNotification('An unexpected error occurred.');
-      }
+      setError('Verification failed');
+      if (typeof showNotification === 'function') showNotification('Verification failed');
     } finally {
       setIsLoading(false);
     }
   }
 
   function handleGoogleLogin() {
-    // This would typically redirect to /api/auth/google
-    window.location.href = '/api/auth/google';
+    // If GOOGLE_AUTH_URL is a relative path, we need to make it absolute for window.location.href
+    // especially if the backend is on a different port in dev
+    const targetUrl = GOOGLE_AUTH_URL.startsWith('http') 
+      ? GOOGLE_AUTH_URL 
+      : `${window.location.origin}${GOOGLE_AUTH_URL}`;
+    
+    window.location.href = targetUrl;
   }
 
   function handleEditEmail() {
@@ -252,3 +229,4 @@ function AuthPage({ title, showNotification, onAuthSuccess }) {
 }
 
 export default AuthPage;
+

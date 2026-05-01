@@ -4,9 +4,8 @@ import './profile.css';
 const profileTabs = [
   { id: 'work', label: 'Work' },
   { id: 'drafts', label: 'Drafts' },
-  { id: 'reviews', label: 'Reviews' },
   { id: 'recent', label: 'Recent' },
-  { id: 'liked', label: 'Liked Shots' },
+  { id: 'collections', label: 'Collections' },
 ];
 
 function LocationPinIcon() {
@@ -145,6 +144,25 @@ function PlusIcon() {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="profile-page__trash-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    </svg>
+  );
+}
+
 function getInitials(name) {
   return name
     .split(/\s+/)
@@ -256,9 +274,14 @@ function ProfilePage({
   toAppHref,
   profile,
   projects = [],
+  collections = [],
   activeTab = 'work',
   onTabChange,
   onDeleteProject,
+  onEditProject,
+  onCreateCollection,
+  onDeleteCollection,
+  onViewCollection,
 }) {
   const menuRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -331,16 +354,16 @@ function ProfilePage({
       ),
     [projects]
   );
-  const collections = useMemo(() => buildCollections(publishedProjects), [publishedProjects]);
 
   function renderEmptyState({
     title,
     copy,
     buttonLabel = 'Upload your first shot',
     buttonHref = '/profile/upload',
+    onButtonClick = null,
   }) {
     return (
-      <section className="profile-page__empty-state" aria-labelledby="profile-empty-title">
+      <section className={`profile-page__empty-state ${onButtonClick ? 'profile-page__empty-state--small' : ''}`} aria-labelledby="profile-empty-title">
         <div className="profile-page__upload-badge" aria-hidden="true">
           <UploadCloudIcon />
         </div>
@@ -351,9 +374,15 @@ function ProfilePage({
 
         <p className="profile-page__empty-copy">{copy}</p>
 
-        <a className="profile-page__upload-button" href={resolveHref(buttonHref)}>
-          {buttonLabel}
-        </a>
+        {onButtonClick ? (
+          <button className="profile-page__upload-button" type="button" onClick={onButtonClick}>
+            {buttonLabel}
+          </button>
+        ) : (
+          <a className="profile-page__upload-button" href={resolveHref(buttonHref)}>
+            {buttonLabel}
+          </a>
+        )}
       </section>
     );
   }
@@ -393,6 +422,17 @@ function ProfilePage({
 
               {openProjectMenuSlug === project.slug ? (
                 <div className="profile-page__project-menu-dropdown" role="menu" aria-label={`${project.title} actions`}>
+                  <button
+                    className="profile-page__project-menu-item"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenProjectMenuSlug(null);
+                      onEditProject?.(project.slug);
+                    }}
+                  >
+                    Edit
+                  </button>
                   <button
                     className="profile-page__project-menu-item profile-page__project-menu-item--danger"
                     type="button"
@@ -457,50 +497,73 @@ function ProfilePage({
 
   function renderCollections() {
     if (!collections.length) {
-      return renderEmptyState({
-        title: 'No collections yet',
-        copy: 'Add collection names while publishing your work and your projects will be grouped here.',
-      });
+      return (
+        <div className="profile-page__collections-container">
+          {renderEmptyState({
+            title: 'No collections yet',
+            copy: 'Group your projects into collections to showcase them together.',
+            buttonLabel: 'Create your first collection',
+            onButtonClick: onCreateCollection,
+          })}
+        </div>
+      );
     }
 
     return (
-      <div className="profile-page__shots-grid profile-page__shots-grid--collections">
-        {collections.map((collection) => (
-          <article key={collection.name} className="profile-page__shot-card profile-page__shot-card--collection">
-            <div className="profile-page__collection-media" aria-hidden="true">
-              {collection.items.slice(0, 3).map((project, index) => (
-                <img
-                  key={project.slug}
-                  className={`profile-page__collection-image profile-page__collection-image--${index + 1}`}
-                  src={project.image}
-                  alt=""
-                />
-              ))}
-            </div>
+      <div className="profile-page__collections-container">
+        <div className="profile-page__projects-actions">
+          <button
+            className="profile-page__add-project-button profile-page__add-project-button--collection"
+            type="button"
+            onClick={onCreateCollection}
+            aria-label="Create collection"
+            title="Create collection"
+          >
+            <PlusIcon />
+          </button>
+        </div>
+        <div className="profile-page__shots-grid profile-page__shots-grid--projects">
+          {collections.map((collection) => {
+            const firstProject = collection.items[0];
+            return (
+              <article key={collection.title} className="profile-page__shot-card profile-page__shot-card--project">
+                <div
+                  className="profile-page__shot-link"
+                  onClick={() => onViewCollection(collection)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="profile-page__shot-media">
+                    <img
+                      className="profile-page__shot-image"
+                      src={firstProject?.image_url || firstProject?.image || '/12.png'}
+                      alt={collection.title}
+                      loading="lazy"
+                    />
+                    <div className="profile-page__shot-overlay">
+                       <button 
+                        className="profile-page__delete-collection" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteCollection(collection.id);
+                        }}
+                        title="Delete Collection"
+                       >
+                         <TrashIcon />
+                       </button>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="profile-page__shot-footer">
-              <div className="profile-page__shot-copy">
-                <p className="profile-page__shot-kicker">Curated collection</p>
-                <h3 className="profile-page__shot-title">{collection.name}</h3>
-                <p className="profile-page__shot-summary">
-                  {collection.items.length} saved project{collection.items.length === 1 ? '' : 's'} grouped
-                  together for quick browsing.
-                </p>
-              </div>
-
-              <div className="profile-page__shot-stats" aria-label={`${collection.name} collection activity`}>
-                <span className="profile-page__shot-stat">
-                  <HeartIcon />
-                  <span>
-                    {formatCompactCount(
-                      collection.items.reduce((total, item) => total + getProjectLikeCount(item), 0)
-                    )}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </article>
-        ))}
+                <div className="profile-page__shot-footer profile-page__shot-footer--project" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
+                  <div className="profile-page__shot-copy--project">
+                    <h3 className="profile-page__shot-title--compact">{collection.title}</h3>
+                    <p className="profile-page__shot-meta">{collection.items.length} projects</p>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
     );
   }

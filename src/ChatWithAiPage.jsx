@@ -200,9 +200,12 @@ function ChatWithAiPage({ toAppHref, profile }) {
 
     // Fetch recent chats
     if (profile?.id) {
-      fetch(`http://localhost:5000/api/ai/recent/${profile.id}`)
+      const token = localStorage.getItem('codefolio_token');
+      fetch(`/api/ai/recent/${profile.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
         .then(res => res.json())
-        .then(data => setRecentChats(data))
+        .then(data => setRecentChats(Array.isArray(data) ? data : []))
         .catch(err => console.error('Error fetching recents:', err));
     }
 
@@ -224,9 +227,13 @@ function ChatWithAiPage({ toAppHref, profile }) {
     setIsThinking(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/chat', {
+      const token = localStorage.getItem('codefolio_token');
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ messages: nextMessages, userId: profile?.id }),
       });
 
@@ -236,10 +243,12 @@ function ChatWithAiPage({ toAppHref, profile }) {
         setMessages((prev) => [...prev, { role: 'assistant', text: data.text }]);
         // Refresh recents
         if (profile?.id) {
-          const recentsRes = await fetch(`http://localhost:5000/api/ai/recent/${profile.id}`);
+          const recentsRes = await fetch(`/api/ai/recent/${profile.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
           if (recentsRes.ok) {
             const recentsData = await recentsRes.json();
-            setRecentChats(recentsData);
+            setRecentChats(Array.isArray(recentsData) ? recentsData : []);
           }
         }
       } else {
@@ -267,7 +276,10 @@ function ChatWithAiPage({ toAppHref, profile }) {
     setIsThinking(true);
     setIsSidebarOpen(false);
     try {
-      const response = await fetch(`http://localhost:5000/api/ai/history/${profile.id}?query=${encodeURIComponent(chatTitle)}`);
+      const token = localStorage.getItem('codefolio_token');
+      const response = await fetch(`/api/ai/history/${profile.id}?query=${encodeURIComponent(chatTitle)}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
       if (response.ok) {
         const history = await response.json();
         // Convert DB messages to local state format

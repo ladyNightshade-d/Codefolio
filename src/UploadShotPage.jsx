@@ -15,21 +15,21 @@ const uploadRules = [
 const suggestedTags = ['Climate', 'Environment', 'Wastes'];
 const projectStatusOptions = ['Active', 'Completed', 'Archived'];
 
-function createInitialFormState() {
+function createInitialFormState(initialData = null) {
   return {
-    title: '',
-    summary: '',
-    problemText: '',
-    solutionText: '',
-    keyFeaturesText: '',
-    techStack: [],
-    tags: [],
-    teamMembers: [],
-    year: '',
-    event: '',
-    repositoryUrl: '',
-    liveDemoUrl: '',
-    status: 'Active',
+    title: initialData?.title || '',
+    summary: initialData?.summary || '',
+    problemText: initialData?.problem?.join('\n') || '',
+    solutionText: initialData?.solution?.join('\n') || '',
+    keyFeaturesText: initialData?.keyFeatures?.join('\n') || '',
+    techStack: initialData?.techStack || [],
+    tags: initialData?.tags || [],
+    teamMembers: initialData?.team || [],
+    year: initialData?.cohort || '',
+    event: initialData?.course || '',
+    repositoryUrl: initialData?.repositoryUrl || '',
+    liveDemoUrl: initialData?.liveDemoUrl || '',
+    status: initialData?.status || 'Active',
     feedbackRequested: false,
   };
 }
@@ -44,10 +44,11 @@ function buildFeatureList(value = '') {
   return value.split(/[.!?]\s+/).map((item) => item.trim()).filter(Boolean).slice(0, 4);
 }
 
-function buildSubmission(files, formState) {
+function buildSubmission(files, formState, initialData = null) {
   return {
     files,
     formData: {
+      slug: initialData?.slug,
       title: formState.title.trim(),
       summary: formState.summary.trim(),
       techStack: formState.techStack,
@@ -65,6 +66,9 @@ function buildSubmission(files, formState) {
       feedbackRequested: formState.feedbackRequested,
       collections: [],
       tags: formState.tags,
+      // Pass existing image URLs if no new files are uploaded
+      image: initialData?.image,
+      gallery: initialData?.gallery,
     },
   };
 }
@@ -194,7 +198,7 @@ function ListBulletsIcon() {
   return <svg aria-hidden="true" className="upload-shot-page__toolbar-icon" viewBox="0 0 20 20" fill="none"><circle cx="4.25" cy="5.25" r="1.1" /><circle cx="4.25" cy="10" r="1.1" /><circle cx="4.25" cy="14.75" r="1.1" /><path d="M8 5.25h7.75" /><path d="M8 10h7.75" /><path d="M8 14.75h7.75" /></svg>;
 }
 
-function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [], onSaveDraft, onPublishProject }) {
+function UploadShotPage({ mode = 'upload', initialData = null, toAppHref, contributorDirectory = [], onSaveDraft, onPublishProject }) {
   const isDetailsMode = mode === 'details';
   const fileInputRef = useRef(null);
   const solutionInputRef = useRef(null);
@@ -205,12 +209,12 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   const [techStackInput, setTechStackInput] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [contributorInput, setContributorInput] = useState('');
-  const [formState, setFormState] = useState(() => createInitialFormState());
-  const pendingUpload = isDetailsMode ? readPendingUpload() : null;
+  const [formState, setFormState] = useState(() => createInitialFormState(initialData));
+  const pendingUpload = isDetailsMode ? (readPendingUpload() || (initialData?.image ? { previewUrl: initialData.image, files: [] } : null)) : null;
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
-  const canOpenDetails = !isDetailsMode || hasUploadDetailsEntry();
+  const canOpenDetails = !isDetailsMode || hasUploadDetailsEntry() || Boolean(initialData);
 
   const profileHref = typeof toAppHref === 'function' ? toAppHref('/profile') : '/profile';
   const acceptedFileList = Array.from(acceptedImageTypes).join(',');
@@ -329,7 +333,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     let nextValue = currentValue;
     let nextSelectionStart = selectionStart;
     let nextSelectionEnd = selectionEnd;
-    
+
     if (type === 'bold') {
       insertValue = `**${selectedText || 'bold text'}**`;
       nextValue = `${beforeSelection}${insertValue}${afterSelection}`;
@@ -352,7 +356,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
       nextSelectionStart = selectionStart;
       nextSelectionEnd = selectionStart + insertValue.length;
     }
-    
+
     updateFormField(field, nextValue);
     requestAnimationFrame(() => {
       textarea.focus();
@@ -383,22 +387,22 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     if (!selectedImageCount) return;
     clearUploadDetailsEntry();
     clearPendingUpload();
-    onSaveDraft?.(buildSubmission(selectedFiles, formState));
+    onSaveDraft?.(buildSubmission(selectedFiles, formState, initialData));
   }
 
   async function handleDetailsDraft(event) {
     event.preventDefault();
     console.log('Draft button clicked');
-    if (!pendingFiles.length) {
+    if (!pendingFiles.length && !initialData?.image) {
       console.log('No pending files, redirecting');
       navigateToHash('/profile/upload');
       return;
     }
-    
+
     setIsSavingDraft(true);
     try {
       console.log('Calling onSaveDraft...');
-      await onSaveDraft?.(buildSubmission(pendingFiles, formState));
+      await onSaveDraft?.(buildSubmission(pendingFiles, formState, initialData));
     } finally {
       setIsSavingDraft(false);
     }
@@ -407,7 +411,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
   async function handlePublish(event) {
     event.preventDefault();
     console.log('Publish button clicked');
-    if (!pendingFiles.length) {
+    if (!pendingFiles.length && !initialData?.image) {
       console.log('No pending files, redirecting');
       navigateToHash('/profile/upload');
       return;
@@ -416,7 +420,7 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
     setIsPublishing(true);
     try {
       console.log('Calling onPublishProject...');
-      await onPublishProject?.(buildSubmission(pendingFiles, formState));
+      await onPublishProject?.(buildSubmission(pendingFiles, formState, initialData));
     } catch (err) {
       console.error('Publish error in component:', err);
     } finally {
@@ -473,19 +477,19 @@ function UploadShotPage({ mode = 'upload', toAppHref, contributorDirectory = [],
         <div className="upload-shot-page__topbar upload-shot-page__topbar--details">
           <a className="upload-shot-page__secondary-button" href={profileHref} onClick={() => { clearUploadDetailsEntry(); clearPendingUpload(); }}>Cancel</a>
           <div className="upload-shot-page__topbar-actions">
-            <button 
+            <button
               key="publish-btn"
-              className="upload-shot-page__primary-button upload-shot-page__primary-button--publish" 
-              type="submit" 
+              className="upload-shot-page__primary-button upload-shot-page__primary-button--publish"
+              type="submit"
               form="upload-shot-details-form"
               disabled={isPublishing}
             >
               {isPublishing ? 'Publishing...' : 'Publish Project'}
             </button>
-            <button 
+            <button
               key="draft-btn"
-              className="upload-shot-page__secondary-button" 
-              type="button" 
+              className="upload-shot-page__secondary-button"
+              type="button"
               onClick={handleDetailsDraft}
               disabled={isSavingDraft}
             >
