@@ -625,7 +625,6 @@ function ProfilePage({
                 <div className="profile-page__shot-footer profile-page__shot-footer--project" onClick={() => onViewCollection(collection)} style={{ cursor: 'pointer' }}>
                   <div className="profile-page__shot-copy--project">
                     <h3 className="profile-page__shot-title--compact">{collection.title}</h3>
-                    <p className="profile-page__shot-meta">{projects.length} projects</p>
                   </div>
                 </div>
               </article>
