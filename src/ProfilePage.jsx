@@ -529,6 +529,37 @@ function ProfilePage({
         <div className="profile-page__shots-grid profile-page__shots-grid--collections">
           {collections.map((collection) => {
             const projects = collection.items || [];
+            const displayImages = [];
+            
+            // Collect unique images from projects and their galleries
+            const seenImages = new Set();
+            for (const p of projects) {
+              const mainImg = p.image_url || p.image;
+              if (mainImg && !seenImages.has(mainImg)) {
+                displayImages.push(mainImg);
+                seenImages.add(mainImg);
+              }
+              if (displayImages.length >= 3) break;
+              
+              const gallery = Array.isArray(p.gallery) ? p.gallery : [];
+              for (const g of gallery) {
+                if (g && !seenImages.has(g)) {
+                  displayImages.push(g);
+                  seenImages.add(g);
+                }
+                if (displayImages.length >= 3) break;
+              }
+              if (displayImages.length >= 3) break;
+            }
+
+            // Fallback to distinct placeholders
+            const placeholders = ['/12.png', '/11.png', '/10.png'];
+            for (let i = 0; i < 3; i++) {
+              if (!displayImages[i]) {
+                displayImages[i] = placeholders[i];
+              }
+            }
+
             return (
               <article key={collection.id || collection.title} className="profile-page__shot-card" style={{ overflow: 'visible' }}>
                 <div className="profile-page__project-menu profile-page__collection-menu">
@@ -586,17 +617,17 @@ function ProfilePage({
                   <div className="profile-page__collection-media">
                     <img
                       className="profile-page__collection-image profile-page__collection-image--1"
-                      src={projects[0]?.image_url || projects[0]?.image || '/12.png'}
+                      src={displayImages[0]}
                       alt=""
                     />
                     <img
                       className="profile-page__collection-image profile-page__collection-image--2"
-                      src={projects[1]?.image_url || projects[1]?.image || '/12.png'}
+                      src={displayImages[1]}
                       alt=""
                     />
                     <img
                       className="profile-page__collection-image profile-page__collection-image--3"
-                      src={projects[2]?.image_url || projects[2]?.image || '/12.png'}
+                      src={displayImages[2]}
                       alt=""
                     />
                   </div>
