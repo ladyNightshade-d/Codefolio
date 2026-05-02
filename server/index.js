@@ -103,11 +103,21 @@ async function ensureChatSchema() {
     await query(`
       CREATE TABLE IF NOT EXISTS conversations (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id INTEGER REFERENCES users(id),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         title TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `).catch(e => console.error('Migration Error (conversations):', e.message));
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id SERIAL PRIMARY KEY,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `).catch(e => console.error('Migration Error (chat_messages):', e.message));
 
     await query(`
       ALTER TABLE chat_messages 
