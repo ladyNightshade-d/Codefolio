@@ -1533,7 +1533,6 @@ function Footer() {
 
 function LandingPage({ projects, toAppHref }) {
   const [activeFilter, setActiveFilter] = useState('All projects');
-  const [aiInputValue, setAiInputValue] = useState('');
 
   const filteredProjects = activeFilter === 'All projects'
     ? projects
@@ -1542,12 +1541,6 @@ function LandingPage({ projects, toAppHref }) {
         p.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase())) ||
         (p.collections && p.collections.some(c => c.toLowerCase().includes(activeFilter.toLowerCase())))
       );
-
-  const handleAiSubmit = (e) => {
-    e.preventDefault();
-    if (!aiInputValue.trim()) return;
-    window.location.hash = `/dashboard/chat?m=${encodeURIComponent(aiInputValue)}`;
-  };
 
   return (
     <>
@@ -1571,21 +1564,6 @@ function LandingPage({ projects, toAppHref }) {
               Explore showcases
             </a>
           </div>
-
-          <form className="dashboard-ai-banner" onSubmit={handleAiSubmit} style={{ marginTop: '40px', maxWidth: '600px', marginInline: 'auto' }}>
-            <button className="dashboard-ai-banner__button" type="submit">
-              <SparklesIcon />
-              <span>Ask AI</span>
-              <span className="dashboard-ai-banner__badge">NEW</span>
-            </button>
-            <input
-              className="dashboard-ai-banner__input"
-              type="text"
-              placeholder="Tell us what you need and help you to find it easily using AI."
-              value={aiInputValue}
-              onChange={(e) => setAiInputValue(e.target.value)}
-            />
-          </form>
 
           <div className="trust-strip">
             <p className="trust-strip__label">Trusted by modern engineering teams</p>
