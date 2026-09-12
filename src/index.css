@@ -41,6 +41,11 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Force hide footer on Chat Page */
+body:has(.chat-ai-page) .site-footer {
+  display: none !important;
+}
+
 button,
 a {
   color: inherit;
@@ -2019,4 +2024,37 @@ select:autofill {
     flex-wrap: wrap;
     gap: 18px 24px;
   }
+}
+
+/* ── Active like/bookmark state ─────────────────────────────────────────── */
+.project-detail__author-icon-button--active .heart-icon path {
+  fill: #e5484d;
+  stroke: #e5484d;
+}
+
+.project-detail__author-icon-button--active .project-detail__author-action-icon path {
+  fill: #17142c;
+  stroke: #17142c;
+}
+
+/* ── Settings logout button (looks like a link) ─────────────────────────── */
+button.settings-page__logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+  transition: background 120ms;
+}
+
+button.settings-page__logout:hover {
+  background: #f5f3ef;
 }
