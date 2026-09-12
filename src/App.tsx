@@ -8,6 +8,16 @@ import PublicProfilePage from './PublicProfilePage.jsx';
 import SettingsPage from './SettingsPage.jsx';
 import SignupPage from './SignupPage.jsx';
 import UploadShotPage from './UploadShotPage.jsx';
+import {
+  apiGetMe,
+  apiLogout,
+  apiUpdateProfile,
+  apiUpdateNotifications,
+  apiDeleteAccount,
+  apiUploadImages,
+  apiCreateProject,
+  apiDeleteProject,
+} from './api.js';
 
 function getCurrentPath() {
   if (typeof window === 'undefined') {
@@ -46,79 +56,79 @@ const footerItems = [
 ];
 
 const trustLogos = [
-  { src: '/withintech.png', alt: 'Withintech' },
-  { src: '/academicbridge.png', alt: 'Academic Bridge' },
-  { src: '/irembo.png', alt: 'Irembo' },
+  { src: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/withintech.png', alt: 'Withintech' },
+  { src: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/academicbridge.png', alt: 'Academic Bridge' },
+  { src: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/irembo.png', alt: 'Irembo' },
 ];
 
 const legacyFeaturedProjects = [
   {
     title: 'Obsidian Core',
-    stack: 'React ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Rust ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ WASM',
-    image: '/1.png',
+    stack: 'React · Rust · WASM',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/1.png',
     imageAlt: 'Obsidian Core preview',
     tag: 'NEW',
   },
   {
     title: 'Lumina Dev',
-    stack: 'Next.js ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ three.js',
-    image: '/2.png',
+    stack: 'Next.js · three.js',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/2.png',
     imageAlt: 'Lumina Dev preview',
   },
   {
-    title: 'alow State',
-    stack: 'Node ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ GraphÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© L',
-    image: '/3.png',
-    imageAlt: 'alow State preview',
+    title: 'Flow State',
+    stack: 'Node · GraphQL',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/3.png',
+    imageAlt: 'Flow State preview',
   },
   {
     title: 'Synthetix',
-    stack: 'Svelte ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Tailwind',
-    image: '/4.png',
+    stack: 'Svelte · Tailwind',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/4.png',
     imageAlt: 'Synthetix preview',
   },
   {
     title: 'Monolith Infrastructure',
-    stack: 'Go ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Kubernetes ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Docker',
-    image: '/5.png',
+    stack: 'Go · Kubernetes · Docker',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/5.png',
     imageAlt: 'Monolith Infrastructure preview',
     tag: 'FEATURED',
     wide: true,
   },
   {
     title: 'Vortex AI',
-    stack: 'Python ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ PyTorch',
-    image: '/6.png',
+    stack: 'Python · PyTorch',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/6.png',
     imageAlt: 'Vortex AI preview',
   },
   {
     title: 'Sonic Labs',
-    stack: 'Vue ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ WebAudio',
-    image: '/7.png',
+    stack: 'Vue · WebAudio',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/7.png',
     imageAlt: 'Sonic Labs preview',
   },
   {
     title: 'Aether Stream',
-    stack: 'D3.js ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ WebGL',
-    image: '/8.png',
+    stack: 'D3.js · WebGL',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/8.png',
     imageAlt: 'Aether Stream preview',
   },
   {
     title: 'Minimal Script',
-    stack: 'TypeScript ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Bun',
-    image: '/9.png',
+    stack: 'TypeScript · Bun',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/9.png',
     imageAlt: 'Minimal Script preview',
   },
   {
     title: 'Metric Pro',
-    stack: 'Grafana ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Prometheus',
-    image: '/10.png',
+    stack: 'Grafana · Prometheus',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/10.png',
     imageAlt: 'Metric Pro preview',
   },
   {
     title: 'Atomic UI',
-    stack: 'React ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Storybook',
-    image: '/11.png',
+    stack: 'React · Storybook',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/11.png',
     imageAlt: 'Atomic UI preview',
   },
 ];
@@ -127,44 +137,44 @@ const projectTeamProfiles = {
   elena: {
     slug: 'elena-rostova',
     name: 'Elena Rostova',
-    image: '/contributors/elena-rostova.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/elena-rostova.jpg',
   },
   marcus: {
     slug: 'marcus-chen',
     name: 'Marcus Chen',
-    image: '/contributors/marcus-chen.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/marcus-chen.jpg',
   },
   sarah: {
     slug: 'sarah-jenkins',
     name: 'Sarah Jenkins',
-    image: '/contributors/sarah-jenkins.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/sarah-jenkins.jpg',
   },
-  david: { slug: 'david-kim', name: 'David Kim', image: '/contributors/david-kim.jpg' },
-  priya: { slug: 'priya-patel', name: 'Priya Patel', image: '/contributors/priya-patel.jpg' },
+  david: { slug: 'david-kim', name: 'David Kim', image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/david-kim.jpg' },
+  priya: { slug: 'priya-patel', name: 'Priya Patel', image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/priya-patel.jpg' },
   james: {
     slug: 'james-wilson',
     name: 'James Wilson',
-    image: '/contributors/james-wilson.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/james-wilson.jpg',
   },
   nina: {
     slug: 'nina-gonzalez',
     name: 'Nina Gonzalez',
-    image: '/contributors/nina-gonzalez.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/nina-gonzalez.jpg',
   },
-  alex: { slug: 'alex-thorne', name: 'Alex Thorne', image: '/contributors/alex-thorne.jpg' },
+  alex: { slug: 'alex-thorne', name: 'Alex Thorne', image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/alex-thorne.jpg' },
 };
 
 const projectGalleryFallbackPool = [
-  '/12.png',
-  '/13.png',
-  '/14.png',
-  '/15.png',
-  '/16.png',
-  '/19.png',
-  '/20.png',
-  '/21.png',
-  '/22.png',
-  '/23.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/12.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/13.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/14.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/15.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/16.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/19.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/20.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/21.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/22.png',
+  'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/23.png',
 ];
 
 function createProjectTeamMember(profileKey, role) {
@@ -201,9 +211,9 @@ const projectRecords = [
     stack: 'React - Rust - WASM',
     techStack: ['React', 'Rust', 'WASM', 'Grafana'],
     summary: 'A resilient control surface for inspecting distributed systems in real time.',
-    image: '/1.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/1.png',
     imageAlt: 'Obsidian Core preview',
-    gallery: ['/1.png', '/5.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/1.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/5.png'],
     tag: 'NEW',
     status: 'Completed',
     cohort: 'Fall 2025',
@@ -234,9 +244,9 @@ const projectRecords = [
     stack: 'Next.js - three.js',
     techStack: ['Next.js', 'three.js', 'Framer Motion', 'Vercel'],
     summary: 'A cinematic developer portfolio platform built around spatial storytelling.',
-    image: '/2.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/2.png',
     imageAlt: 'Lumina Dev preview',
-    gallery: ['/2.png', '/11.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/2.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/11.png'],
     status: 'Live',
     cohort: 'Spring 2025',
     course: 'CS335: Immersive Interface Design',
@@ -266,9 +276,9 @@ const projectRecords = [
     stack: 'Node - GraphQL',
     techStack: ['Node.js', 'GraphQL', 'Prisma', 'Redis'],
     summary: 'A calm coordination hub for managing large product delivery pipelines.',
-    image: '/3.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/3.png',
     imageAlt: 'Flow State preview',
-    gallery: ['/3.png', '/10.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/3.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/10.png'],
     status: 'Completed',
     cohort: 'Fall 2024',
     course: 'CS320: Product Systems',
@@ -298,9 +308,9 @@ const projectRecords = [
     stack: 'Svelte - Tailwind',
     techStack: ['Svelte', 'Tailwind CSS', 'Supabase', 'TypeScript'],
     summary: 'A modular design system workspace for shipping consistent product surfaces faster.',
-    image: '/4.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/4.png',
     imageAlt: 'Synthetix preview',
-    gallery: ['/4.png', '/11.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/4.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/11.png'],
     status: 'Completed',
     cohort: 'Spring 2025',
     course: 'CS360: Design Systems Engineering',
@@ -330,9 +340,9 @@ const projectRecords = [
     stack: 'Go - Kubernetes - Docker',
     techStack: ['Go', 'Kubernetes', 'Docker', 'Prometheus'],
     summary: 'A hardened infrastructure console for orchestrating complex internal platforms.',
-    image: '/5.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/5.png',
     imageAlt: 'Monolith Infrastructure preview',
-    gallery: ['/5.png', '/10.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/5.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/10.png'],
     tag: 'FEATURED',
     wide: true,
     status: 'Completed',
@@ -364,9 +374,9 @@ const projectRecords = [
     stack: 'Python - PyTorch',
     techStack: ['Python', 'PyTorch', 'FastAPI', 'NumPy'],
     summary: 'A visual experimentation lab for rapid model iteration and insight tracking.',
-    image: '/6.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/6.png',
     imageAlt: 'Vortex AI preview',
-    gallery: ['/6.png', '/8.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/6.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/8.png'],
     status: 'In Review',
     cohort: 'Spring 2026',
     course: 'CS470: Applied Machine Learning',
@@ -396,9 +406,9 @@ const projectRecords = [
     stack: 'Vue - WebAudio',
     techStack: ['Vue', 'WebAudio API', 'Tone.js', 'Canvas'],
     summary: 'An audio prototyping studio for shaping reactive sound experiences in the browser.',
-    image: '/7.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/7.png',
     imageAlt: 'Sonic Labs preview',
-    gallery: ['/7.png', '/8.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/7.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/8.png'],
     status: 'Live',
     cohort: 'Fall 2024',
     course: 'CS305: Creative Coding Systems',
@@ -428,9 +438,9 @@ const projectRecords = [
     stack: 'D3.js - WebGL',
     techStack: ['D3.js', 'WebGL', 'TypeScript', 'Worker Threads'],
     summary: 'A high-density visualization surface for understanding streaming datasets at scale.',
-    image: '/8.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/8.png',
     imageAlt: 'Aether Stream preview',
-    gallery: ['/8.png', '/6.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/8.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/6.png'],
     status: 'Completed',
     cohort: 'Fall 2025',
     course: 'CS480: Advanced Data Visualization',
@@ -460,9 +470,9 @@ const projectRecords = [
     stack: 'TypeScript - Bun',
     techStack: ['TypeScript', 'Bun', 'Zod', 'CLI UX'],
     summary: 'A stripped-down automation toolkit for developer workflows that value clarity.',
-    image: '/9.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/9.png',
     imageAlt: 'Minimal Script preview',
-    gallery: ['/9.png', '/3.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/9.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/3.png'],
     status: 'Completed',
     cohort: 'Spring 2025',
     course: 'CS300: Developer Tooling',
@@ -492,9 +502,9 @@ const projectRecords = [
     stack: 'Grafana - Prometheus',
     techStack: ['Grafana', 'Prometheus', 'Alertmanager', 'Go'],
     summary: 'An analytics cockpit for turning noisy telemetry into confident decisions.',
-    image: '/10.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/10.png',
     imageAlt: 'Metric Pro preview',
-    gallery: ['/10.png', '/5.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/10.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/5.png'],
     status: 'Completed',
     cohort: 'Fall 2025',
     course: 'CS430: Reliability Engineering',
@@ -524,9 +534,9 @@ const projectRecords = [
     stack: 'React - Storybook',
     techStack: ['React', 'Storybook', 'TypeScript', 'Chromatic'],
     summary: 'A polished component workshop for building and reviewing interface systems.',
-    image: '/11.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/11.png',
     imageAlt: 'Atomic UI preview',
-    gallery: ['/11.png', '/4.png'],
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/11.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/4.png'],
     status: 'Live',
     cohort: 'Spring 2026',
     course: 'CS340: Frontend Architecture',
@@ -573,7 +583,7 @@ const showcaseCollections = [
     platform: 'mobile',
     featured: true,
     publishedAt: '2026-04-18',
-    image: '/12.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/12.png',
     imageAlt: 'remindful project preview',
     avatar: 'linear-gradient(135deg, #d8f0ff 0%, #91cadb 100%)',
   },
@@ -583,7 +593,7 @@ const showcaseCollections = [
     platform: 'mobile',
     featured: false,
     publishedAt: '2026-04-16',
-    image: '/13.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/13.png',
     imageAlt: 'Vibecheck project preview',
     avatar: 'linear-gradient(135deg, #d0f1e9 0%, #72b2a6 100%)',
   },
@@ -593,7 +603,7 @@ const showcaseCollections = [
     platform: 'web',
     featured: true,
     publishedAt: '2026-04-17',
-    image: '/14.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/14.png',
     imageAlt: 'Connectr project preview',
     avatar: 'linear-gradient(135deg, #dcefff 0%, #8bb5d3 100%)',
   },
@@ -603,7 +613,7 @@ const showcaseCollections = [
     platform: 'web',
     featured: false,
     publishedAt: '2026-04-12',
-    image: '/15.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/15.png',
     imageAlt: 'Thread project preview',
     avatar: 'linear-gradient(135deg, #111111 0%, #545454 100%)',
   },
@@ -613,7 +623,7 @@ const showcaseCollections = [
     platform: 'mobile',
     featured: true,
     publishedAt: '2026-04-14',
-    image: '/16.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/16.png',
     imageAlt: 'Vault project preview',
     avatar: 'linear-gradient(135deg, #d4f6f1 0%, #7ab8b4 100%)',
   },
@@ -623,7 +633,7 @@ const showcaseCollections = [
     platform: 'mobile',
     featured: true,
     publishedAt: '2026-04-20',
-    image: '/17.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/17.png',
     imageAlt: 'Aura project preview',
     avatar: 'linear-gradient(135deg, #f4d9d1 0%, #c37d6d 100%)',
     fallbackPreview: 'aura',
@@ -634,7 +644,7 @@ const showcaseCollections = [
     platform: 'web',
     featured: true,
     publishedAt: '2026-04-19',
-    image: '/18.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/18.png',
     imageAlt: 'Flowstate project preview',
     avatar: 'linear-gradient(135deg, #d9f6ef 0%, #74b89f 100%)',
     fallbackPreview: 'flowstate',
@@ -645,7 +655,7 @@ const showcaseCollections = [
     platform: 'web',
     featured: false,
     publishedAt: '2026-04-15',
-    image: '/19.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/19.png',
     imageAlt: 'Nexus project preview',
     avatar: 'linear-gradient(135deg, #c6e8f1 0%, #6ca3ba 100%)',
   },
@@ -655,7 +665,7 @@ const showcaseCollections = [
     platform: 'mobile',
     featured: false,
     publishedAt: '2026-04-11',
-    image: '/20.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/20.png',
     imageAlt: 'Zenith project preview',
     avatar: 'linear-gradient(135deg, #d7f1e4 0%, #5ca985 100%)',
   },
@@ -665,7 +675,7 @@ const showcaseCollections = [
     platform: 'web',
     featured: true,
     publishedAt: '2026-04-13',
-    image: '/21.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/21.png',
     imageAlt: 'Orbit project preview',
     avatar: 'linear-gradient(135deg, #151515 0%, #555555 100%)',
   },
@@ -675,7 +685,7 @@ const showcaseCollections = [
     platform: 'mobile',
     featured: false,
     publishedAt: '2026-04-10',
-    image: '/22.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/22.png',
     imageAlt: 'Lumina project preview',
     avatar: 'linear-gradient(135deg, #f8d9cf 0%, #b55f4c 100%)',
   },
@@ -685,7 +695,7 @@ const showcaseCollections = [
     platform: 'web',
     featured: false,
     publishedAt: '2026-04-09',
-    image: '/23.png',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/23.png',
     imageAlt: 'Pulse project preview',
     avatar: 'linear-gradient(135deg, #f8d6d9 0%, #bf6c78 100%)',
   },
@@ -717,7 +727,7 @@ const contributors = [
     skills: ['React', 'Node.js', 'AWS'],
     location: 'Kigali',
     headline: 'designs resilient product systems with polished, performance-first interfaces.',
-    image: '/contributors/elena-rostova.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/elena-rostova.jpg',
     contact: {
       github: 'https://github.com/elena-rostova',
       linkedin: 'https://www.linkedin.com/in/elena-rostova/',
@@ -732,7 +742,7 @@ const contributors = [
     skills: ['Python', 'PyTorch', 'C++'],
     location: 'Nairobi',
     headline: 'builds applied AI tooling that turns research workflows into usable products.',
-    image: '/contributors/marcus-chen.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/marcus-chen.jpg',
     contact: {
       github: 'https://github.com/marcus-chen',
       linkedin: 'https://www.linkedin.com/in/marcus-chen/',
@@ -747,7 +757,7 @@ const contributors = [
     skills: ['Figma', 'Framer', 'CSS'],
     location: 'Kigali',
     headline: 'translates complex engineering work into crisp, human-centered product experiences.',
-    image: '/contributors/sarah-jenkins.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/sarah-jenkins.jpg',
     contact: {
       github: 'https://github.com/sarah-jenkins',
       linkedin: 'https://www.linkedin.com/in/sarah-jenkins/',
@@ -762,7 +772,7 @@ const contributors = [
     skills: ['Swift', 'Kotlin', 'GraphQL'],
     location: 'Lagos',
     headline: 'ships cross-platform mobile systems with strong reliability and smooth data sync.',
-    image: '/contributors/david-kim.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/david-kim.jpg',
     contact: {
       github: 'https://github.com/david-kim',
       linkedin: 'https://www.linkedin.com/in/david-kim/',
@@ -777,7 +787,7 @@ const contributors = [
     skills: ['Spark', 'Kafka', 'SQL'],
     location: 'Bengaluru',
     headline: 'turns noisy pipelines into dependable data products and measurable insights.',
-    image: '/contributors/priya-patel.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/priya-patel.jpg',
     contact: {
       github: 'https://github.com/priya-patel',
       linkedin: 'https://www.linkedin.com/in/priya-patel/',
@@ -792,7 +802,7 @@ const contributors = [
     skills: ['Kubernetes', 'Terraform', 'CI/CD'],
     location: 'Cape Town',
     headline: 'keeps delivery fast and reliable with hardened cloud platforms and smart automation.',
-    image: '/contributors/james-wilson.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/james-wilson.jpg',
     contact: {
       github: 'https://github.com/james-wilson',
       linkedin: 'https://www.linkedin.com/in/james-wilson/',
@@ -807,7 +817,7 @@ const contributors = [
     skills: ['Vue', 'Nuxt', 'Tailwind'],
     location: 'Kigali',
     headline: 'crafts ambitious frontend experiences with sharp interaction detail and strong performance.',
-    image: '/contributors/nina-gonzalez.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/nina-gonzalez.jpg',
     contact: {
       github: 'https://github.com/nina-gonzalez',
       linkedin: 'https://www.linkedin.com/in/nina-gonzalez/',
@@ -822,7 +832,7 @@ const contributors = [
     skills: ['Rust', 'Go', 'Cryptography'],
     location: 'Johannesburg',
     headline: 'focuses on secure-by-default platforms, identity flows, and systems hardening.',
-    image: '/contributors/alex-thorne.jpg',
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/contributors/alex-thorne.jpg',
     contact: {
       github: 'https://github.com/alex-thorne',
       linkedin: 'https://www.linkedin.com/in/alex-thorne/',
@@ -848,7 +858,7 @@ const currentUserSeed = {
   location: 'Kigali, Rwanda',
   headline: 'builds polished web products grounded in clean systems thinking.',
   bio: 'Senior Developer specializing in clean architecture and performant web applications. Passionate about design systems and user experience.',
-  image: '/me.png',
+  image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/me.png',
   skills: ['React', 'Node.js', 'Design Systems'],
   specialties: ['web', 'ai'],
   contact: {
@@ -875,8 +885,8 @@ const currentUserProjectSeeds = [
     title: 'Community Loop',
     techStack: ['React', 'Node.js', 'PostgreSQL', 'Socket.IO'],
     summary: 'A collaboration hub that helps RCA builders share progress, recruit teammates, and surface portfolio-ready work.',
-    image: '/17.png',
-    gallery: ['/17.png', '/14.png', '/18.png'],
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/17.png',
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/17.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/14.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/18.png'],
     status: 'Live',
     year: '2026',
     event: 'RCA Product Studio',
@@ -912,8 +922,8 @@ const currentUserProjectSeeds = [
     title: 'Studio Ops',
     techStack: ['Vite', 'React', 'Express', 'SQLite'],
     summary: 'An operations dashboard for coordinating coursework deadlines, reviews, and technical project submissions.',
-    image: '/18.png',
-    gallery: ['/18.png', '/21.png', '/22.png'],
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/18.png',
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/18.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/21.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/22.png'],
     status: 'Completed',
     year: '2025',
     event: 'Capstone Systems Lab',
@@ -949,8 +959,8 @@ const currentUserProjectSeeds = [
     title: 'Mentor Grid',
     techStack: ['React', 'Supabase', 'Tailwind CSS'],
     summary: 'A mentor coordination prototype for pairing students with project reviewers and industry support.',
-    image: '/19.png',
-    gallery: ['/19.png', '/20.png'],
+    image: 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/19.png',
+    gallery: ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/19.png', 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/20.png'],
     status: 'In Review',
     year: '2026',
     event: 'Independent Exploration',
@@ -988,7 +998,7 @@ function buildCurrentUserContributor(profile) {
     skills: profile.skills || [],
     location: profile.location,
     headline: profile.headline || '',
-    image: profile.image || '/me.png',
+    image: profile.image || 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/me.png',
     contact: {
       github: profile.contact?.github || '',
       linkedin: profile.contact?.linkedin || '',
@@ -1208,7 +1218,7 @@ function createProjectFromSubmission({
 }) {
   const { files, formData } = submission;
   const gallery =
-    files.length > 0 ? files.map((file) => URL.createObjectURL(file)) : ['/12.png'];
+    files.length > 0 ? files.map((file) => URL.createObjectURL(file)) : ['https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/12.png'];
   const title = formData.title || (visibility === 'draft' ? 'Untitled Draft' : 'Untitled Project');
   const slug = ensureUniqueProjectSlug(projectList, title);
   const seenMembers = new Set();
@@ -1240,7 +1250,7 @@ function createProjectFromSubmission({
         return {
           slug: resolvedContributor?.slug || member.slug || '',
           name,
-          image: member.avatar || resolvedContributor?.image || '/me.png',
+          image: member.avatar || resolvedContributor?.image || 'https://exuqxbudnvjqikffjbis.supabase.co/storage/v1/object/public/project-assets/me.png',
           role: member.role || resolvedContributor?.role || 'Contributor',
         };
       })
@@ -1403,7 +1413,7 @@ function CheckCircleIcon() {
   );
 }
 
-function Header({ activePath }) {
+function Header({ activePath, isLoggedIn = false }) {
   return (
     <header className="site-header">
       <div className="container site-header__inner">
@@ -1425,12 +1435,20 @@ function Header({ activePath }) {
         </nav>
 
         <div className="site-actions">
-          <a className="site-actions__login" href={toAppHref("/login")}>
-            Login
-          </a>
-          <a className="pill-button pill-button--dark pill-button--small" href={toAppHref("/signup")}>
-            Sign up
-          </a>
+          {isLoggedIn ? (
+            <a className="pill-button pill-button--dark pill-button--small" href={toAppHref('/dashboard')}>
+              Dashboard
+            </a>
+          ) : (
+            <>
+              <a className="site-actions__login" href={toAppHref('/login')}>
+                Login
+              </a>
+              <a className="pill-button pill-button--dark pill-button--small" href={toAppHref('/signup')}>
+                Sign up
+              </a>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -1455,13 +1473,18 @@ function Footer() {
           </nav>
         </div>
 
-        <div className="site-footer__bottom">COPYRIGHT 2026 KORVEX - PROJECT MANAGEMENT</div>
+        <div className="site-footer__bottom">COPYRIGHT 2026 CODEFOLIO</div>
       </div>
     </footer>
   );
 }
 
-function LandingPage({ projects }) {
+function LandingPage({ projects, isLoggedIn = false }) {
+  const [activeFilter, setActiveFilter] = useState('Popular');
+  const [visibleCount, setVisibleCount] = useState(8);
+
+  const visibleProjects = projects.slice(0, visibleCount);
+
   return (
     <>
       <section className="hero-section">
@@ -1477,10 +1500,16 @@ function LandingPage({ projects }) {
           </p>
 
           <div className="hero-actions">
-            <a className="pill-button pill-button--dark" href={toAppHref('/signup')}>
-              Join for free
-            </a>
-            <a className="pill-button pill-button--light" href={toAppHref("/showcases")}>
+            {isLoggedIn ? (
+              <a className="pill-button pill-button--dark" href={toAppHref('/dashboard')}>
+                Go to Dashboard
+              </a>
+            ) : (
+              <a className="pill-button pill-button--dark" href={toAppHref('/signup')}>
+                Join for free
+              </a>
+            )}
+            <a className="pill-button pill-button--light" href={toAppHref('/showcases')}>
               Explore showcases
             </a>
           </div>
@@ -1489,12 +1518,7 @@ function LandingPage({ projects }) {
             <p className="trust-strip__label">Trusted by modern engineering teams</p>
             <div className="trust-strip__logos">
               {trustLogos.map((logo) => (
-                <img
-                  key={logo.alt}
-                  className="trust-strip__logo"
-                  src={logo.src}
-                  alt={logo.alt}
-                />
+                <img key={logo.alt} className="trust-strip__logo" src={logo.src} alt={logo.alt} />
               ))}
             </div>
           </div>
@@ -1503,16 +1527,17 @@ function LandingPage({ projects }) {
 
       <section className="projects-section" id="community" aria-labelledby="projects-heading">
         <div className="container projects-section__inner">
-          <h2 className="sr-only" id="projects-heading">
-            Featured projects
-          </h2>
+          <h2 className="sr-only" id="projects-heading">Featured projects</h2>
 
           <div className="project-filters" role="tablist" aria-label="Project filters">
-            {homeFilterItems.map((item, index) => (
+            {homeFilterItems.map((item) => (
               <button
                 key={item}
-                className={`project-filters__pill ${index === 0 ? 'project-filters__pill--active' : ''}`}
+                className={`project-filters__pill ${activeFilter === item ? 'project-filters__pill--active' : ''}`}
                 type="button"
+                role="tab"
+                aria-selected={activeFilter === item}
+                onClick={() => setActiveFilter(item)}
               >
                 {item}
               </button>
@@ -1520,7 +1545,7 @@ function LandingPage({ projects }) {
           </div>
 
           <div className="projects-grid">
-            {projects.map((project) => (
+            {visibleProjects.map((project) => (
               <article key={project.title} className="project-card">
                 <a className="project-card__link" href={toAppHref(`/projects/${project.slug}`)}>
                   <img
@@ -1529,13 +1554,10 @@ function LandingPage({ projects }) {
                     alt={project.imageAlt}
                     loading="lazy"
                   />
-
                   <div className="project-card__content">
                     <div className="project-card__top">
                       <h3 className="project-card__title">{project.title}</h3>
-                      {project.tag ? (
-                        <span className="project-card__badge">{project.tag}</span>
-                      ) : null}
+                      {project.tag ? <span className="project-card__badge">{project.tag}</span> : null}
                     </div>
                     <p className="project-card__stack">{project.stack}</p>
                   </div>
@@ -1544,12 +1566,18 @@ function LandingPage({ projects }) {
             ))}
           </div>
 
-          <div className="projects-section__footer">
-            <button className="load-more-button" type="button">
-              <span>Load more projects</span>
-              <ChevronDownIcon />
-            </button>
-          </div>
+          {visibleCount < projects.length && (
+            <div className="projects-section__footer">
+              <button
+                className="load-more-button"
+                type="button"
+                onClick={() => setVisibleCount((n) => n + 8)}
+              >
+                <span>Load more projects</span>
+                <ChevronDownIcon />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1557,11 +1585,13 @@ function LandingPage({ projects }) {
         <div className="container cta-section__inner">
           <h2 className="cta-section__title">Ready to ship?</h2>
           <p className="cta-section__copy">
-            Join the elite community of builders defining the next generation of the
-            web.
+            Join the community of builders defining the next generation of engineering.
           </p>
-          <a className="pill-button pill-button--dark cta-section__button" href={toAppHref("/showcases")}>
-            Browse collections
+          <a
+            className="pill-button pill-button--dark cta-section__button"
+            href={toAppHref(isLoggedIn ? '/profile/upload' : '/signup')}
+          >
+            {isLoggedIn ? 'Upload a project' : 'Browse collections'}
           </a>
         </div>
       </section>
@@ -1745,7 +1775,7 @@ function CloseIcon() {
   );
 }
 
-function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug }) {
+function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug, likedProjects = new Set(), bookmarkedProjects = new Set(), onToggleLike, onToggleBookmark }) {
   const [activeGalleryPage, setActiveGalleryPage] = useState(0);
   const primaryMember = project.team[0] || null;
   const primaryContributor = primaryMember?.slug ? findContributorBySlug(primaryMember.slug) : null;
@@ -1841,16 +1871,20 @@ function ProjectDetailPage({ project, onClose, toAppHref, findContributorBySlug 
 
               <div className="project-detail__author-actions" aria-label="Project actions">
                 <button
-                  className="project-detail__author-icon-button"
+                  className={`project-detail__author-icon-button ${likedProjects.has(project.slug) ? 'project-detail__author-icon-button--active' : ''}`}
                   type="button"
-                  aria-label="Save project"
+                  aria-label={likedProjects.has(project.slug) ? 'Unlike project' : 'Like project'}
+                  aria-pressed={likedProjects.has(project.slug)}
+                  onClick={() => onToggleLike?.(project.slug)}
                 >
                   <HeartIcon />
                 </button>
                 <button
-                  className="project-detail__author-icon-button"
+                  className={`project-detail__author-icon-button ${bookmarkedProjects.has(project.slug) ? 'project-detail__author-icon-button--active' : ''}`}
                   type="button"
-                  aria-label="Bookmark project"
+                  aria-label={bookmarkedProjects.has(project.slug) ? 'Remove bookmark' : 'Bookmark project'}
+                  aria-pressed={bookmarkedProjects.has(project.slug)}
+                  onClick={() => onToggleBookmark?.(project.slug)}
                 >
                   <BookmarkIcon />
                 </button>
@@ -2110,7 +2144,7 @@ function ContributorsPage({ toAppHref, contributors }) {
         </div>
 
         <div className="contributors-grid">
-          {visibleContributors.map((contributor) => (
+          {visibleContributors.map((contributor: Record<string, any>) => (
             <a
               key={contributor.slug}
               className="contributor-card"
@@ -2126,7 +2160,7 @@ function ContributorsPage({ toAppHref, contributors }) {
               <h2 className="contributor-card__name">{contributor.name}</h2>
               <p className="contributor-card__role">{contributor.role}</p>
               <div className="contributor-card__skills" aria-label={`${contributor.name} skills`}>
-                {contributor.skills.map((skill) => (
+                {contributor.skills.map((skill: string) => (
                   <span key={skill} className="contributor-card__skill">
                     {skill}
                   </span>
@@ -2142,119 +2176,221 @@ function ContributorsPage({ toAppHref, contributors }) {
 
 function App() {
   const [pathname, setPathname] = useState(getCurrentPath);
-  const [currentUser, setCurrentUser] = useState(currentUserSeed);
+  // null = loading, false = guest, object = logged-in user
+  const [currentUser, setCurrentUser] = useState(null);
   const [projects, setProjects] = useState([...initialCurrentUserProjects, ...initialProjectRecords]);
   const [activeProfileTab, setActiveProfileTab] = useState('work');
+  const [likedProjects, setLikedProjects] = useState(new Set());
+  const [bookmarkedProjects, setBookmarkedProjects] = useState(new Set());
 
+  // Route sync
   useEffect(() => {
-    function syncPathname() {
-      setPathname(getCurrentPath());
-    }
-
+    function syncPathname() { setPathname(getCurrentPath()); }
     syncPathname();
     window.addEventListener('hashchange', syncPathname);
     window.addEventListener('popstate', syncPathname);
-
     return () => {
       window.removeEventListener('hashchange', syncPathname);
       window.removeEventListener('popstate', syncPathname);
     };
   }, []);
 
-  const contributorDirectory = buildContributorDirectory(currentUser);
+  // Auth check on load
+  useEffect(() => {
+    const token = sessionStorage.getItem('cf_token');
+    if (!token) { setCurrentUser(false); return; }
+    apiGetMe()
+      .then(({ user }) => {
+        setCurrentUser({
+          ...currentUserSeed,
+          ...user,
+          notifications: user.notifications || currentUserSeed.notifications,
+          contact: { ...currentUserSeed.contact, ...(user.contact || {}) },
+          education: user.education?.length ? user.education : currentUserSeed.education,
+          skills: user.skills?.length ? user.skills : currentUserSeed.skills,
+          specialties: user.specialties?.length ? user.specialties : currentUserSeed.specialties,
+          image: user.image || currentUserSeed.image,
+        });
+      })
+      .catch(() => {
+        sessionStorage.removeItem('cf_token');
+        setCurrentUser(false);
+      });
+  }, []);
+
+  const effectiveUser = currentUser || currentUserSeed;
+  const contributorDirectory = buildContributorDirectory(effectiveUser);
   const publishedProjects = projects.filter((project) => project.visibility !== 'draft');
   const featuredProjectCards = createFeaturedProjects(publishedProjects);
-  const currentUserProjects = projects.filter((project) => project.ownerSlug === currentUser.slug);
+  const currentUserProjects = projects.filter((project) => project.ownerSlug === effectiveUser.slug);
 
   function findContributorBySlug(contributorSlug) {
     return getContributorRecord(contributorDirectory, contributorSlug);
   }
 
   function navigateTo(path) {
-    if (typeof window !== 'undefined') {
-      window.location.hash = path;
+    if (typeof window !== 'undefined') window.location.hash = path;
+  }
+
+  // Auth handlers
+  async function handleLogout() {
+    await apiLogout().catch(() => {});
+    setCurrentUser(false);
+    navigateTo('/');
+  }
+
+  // Settings handlers (call API + update local state)
+  async function handleSaveGeneral(nextGeneralSettings) {
+    try {
+      const { user } = await apiUpdateProfile({ username: nextGeneralSettings.username });
+      setCurrentUser((prev) => ({ ...(prev || currentUserSeed), ...user }));
+    } catch {
+      setCurrentUser((prev) => ({
+        ...(prev || currentUserSeed),
+        username: nextGeneralSettings.username || (prev || currentUserSeed).username,
+        accountEmail: nextGeneralSettings.accountEmail || (prev || currentUserSeed).accountEmail,
+      }));
     }
   }
 
-  function handleSaveGeneral(nextGeneralSettings) {
-    setCurrentUser((currentProfile) => ({
-      ...currentProfile,
-      username: nextGeneralSettings.username || currentProfile.username,
-      accountEmail: nextGeneralSettings.accountEmail || currentProfile.accountEmail,
-    }));
-  }
-
-  function handleSaveProfile(nextProfileData) {
-    const nextProfile = {
-      ...currentUser,
-      ...nextProfileData,
-      contact: {
-        ...currentUser.contact,
-        ...nextProfileData.contact,
-      },
+  async function handleSaveProfile(nextProfileData) {
+    const payload = {
+      name: nextProfileData.name,
+      role: nextProfileData.role,
+      location: nextProfileData.location,
+      headline: nextProfileData.headline,
+      bio: nextProfileData.bio,
+      skills: nextProfileData.skills,
+      specialties: nextProfileData.specialties,
+      image: nextProfileData.image,
+      education: nextProfileData.education,
+      contact: nextProfileData.contact,
     };
-
-    setCurrentUser(nextProfile);
-    setProjects((currentProjects) =>
-      syncProjectsWithContributor(currentProjects, buildCurrentUserContributor(nextProfile))
-    );
+    try {
+      const { user } = await apiUpdateProfile(payload);
+      const nextProfile = { ...effectiveUser, ...user };
+      setCurrentUser(nextProfile);
+      setProjects((prev) => syncProjectsWithContributor(prev, buildCurrentUserContributor(nextProfile)));
+    } catch {
+      const nextProfile = { ...effectiveUser, ...nextProfileData, contact: { ...effectiveUser.contact, ...(nextProfileData.contact || {}) } };
+      setCurrentUser(nextProfile);
+      setProjects((prev) => syncProjectsWithContributor(prev, buildCurrentUserContributor(nextProfile)));
+    }
   }
 
-  function handleSaveSecurity(nextSecuritySettings) {
-    setCurrentUser((currentProfile) => ({
-      ...currentProfile,
-      security: {
-        ...(currentProfile.security || {}),
-        ...nextSecuritySettings,
-      },
-    }));
+  async function handleSaveNotifications(nextNotifications) {
+    try {
+      const { user } = await apiUpdateNotifications(nextNotifications);
+      setCurrentUser((prev) => ({ ...(prev || currentUserSeed), notifications: user.notifications }));
+    } catch {
+      setCurrentUser((prev) => ({ ...(prev || currentUserSeed), notifications: nextNotifications }));
+    }
   }
 
-  function handleSaveNotifications(nextNotifications) {
-    setCurrentUser((currentProfile) => ({
-      ...currentProfile,
-      notifications: nextNotifications,
-    }));
+  async function handleDeleteAccount() {
+    if (!window.confirm('Delete your account? This cannot be undone.')) return;
+    try {
+      await apiDeleteAccount();
+      sessionStorage.removeItem('cf_token');
+      setCurrentUser(false);
+      navigateTo('/');
+    } catch (err) {
+      alert(err.message || 'Failed to delete account.');
+    }
   }
 
-  function handleSaveDraft(submission) {
-    setProjects((currentProjects) => [
-      createProjectFromSubmission({
-        submission,
-        visibility: 'draft',
-        projectList: currentProjects,
-        ownerContributor: buildCurrentUserContributor(currentUser),
-        contributorDirectory,
-      }),
-      ...currentProjects,
-    ]);
+  // Upload + project creation (calls API)
+  async function handleSaveDraft(submission) {
+    try {
+      const files = submission.files || [];
+      let imageUrls = [];
+      if (files.length) {
+        const { urls } = await apiUploadImages(files);
+        imageUrls = urls;
+      }
+      const fd = submission.formData;
+      await apiCreateProject({
+        title: fd.title, summary: fd.summary, tech_stack: fd.techStack,
+        status: fd.status, cohort: fd.year, course: fd.event,
+        problem: fd.problemText.split('\n\n').filter(Boolean),
+        solution: fd.solutionText.split('\n\n').filter(Boolean),
+        innovations: fd.innovations, team: fd.teamMembers,
+        repository_url: fd.repositoryUrl, live_demo_url: fd.liveDemoUrl,
+        feedback_requested: fd.feedbackRequested, collections: fd.collections,
+        tags: fd.tags, image: imageUrls[0] || '', gallery: imageUrls, visibility: 'draft',
+      });
+    } catch (err) {
+      // API save failed — still update local state so the user sees the draft
+      // and show a non-blocking warning
+      console.warn('[handleSaveDraft] API save failed, using local state:', err);
+    }
+    setProjects((prev) => [createProjectFromSubmission({ submission, visibility: 'draft', projectList: prev, ownerContributor: buildCurrentUserContributor(effectiveUser), contributorDirectory }), ...prev]);
     setActiveProfileTab('drafts');
     navigateTo('/profile');
   }
 
-  function handlePublishProject(submission) {
-    setProjects((currentProjects) => [
-      createProjectFromSubmission({
-        submission,
-        visibility: 'published',
-        projectList: currentProjects,
-        ownerContributor: buildCurrentUserContributor(currentUser),
-        contributorDirectory,
-      }),
-      ...currentProjects,
-    ]);
+  async function handlePublishProject(submission) {
+    let imageUrls = [];
+    try {
+      const files = submission.files || [];
+      if (files.length) {
+        const { urls } = await apiUploadImages(files);
+        imageUrls = urls;
+      }
+      const fd = submission.formData;
+      await apiCreateProject({
+        title: fd.title, summary: fd.summary, tech_stack: fd.techStack,
+        status: fd.status, cohort: fd.year, course: fd.event,
+        problem: fd.problemText.split('\n\n').filter(Boolean),
+        solution: fd.solutionText.split('\n\n').filter(Boolean),
+        innovations: fd.innovations, team: fd.teamMembers,
+        repository_url: fd.repositoryUrl, live_demo_url: fd.liveDemoUrl,
+        feedback_requested: fd.feedbackRequested, collections: fd.collections,
+        tags: fd.tags, image: imageUrls[0] || '', gallery: imageUrls, visibility: 'published',
+      });
+    } catch (err) {
+      console.warn('[handlePublishProject] API save failed, using local state:', err);
+    }
+    const subWithUrls = imageUrls.length ? { ...submission, files: [], formData: { ...submission.formData, _uploadedUrls: imageUrls } } : submission;
+    setProjects((prev) => [createProjectFromSubmission({ submission: subWithUrls, visibility: 'published', projectList: prev, ownerContributor: buildCurrentUserContributor(effectiveUser), contributorDirectory }), ...prev]);
     setActiveProfileTab('work');
     navigateTo('/profile');
   }
 
-  function handleDeleteProject(projectSlug) {
-    setProjects((currentProjects) =>
-      currentProjects.filter(
-        (project) => !(project.ownerSlug === currentUser.slug && project.slug === projectSlug)
-      )
-    );
+  async function handleDeleteProject(projectSlug) {
+    // Snapshot for rollback
+    const snapshot = projects.filter((p) => p.ownerSlug === effectiveUser.slug && p.slug === projectSlug);
+    // Optimistic remove
+    setProjects((prev) => prev.filter((p) => !(p.ownerSlug === effectiveUser.slug && p.slug === projectSlug)));
+    try {
+      await apiDeleteProject(projectSlug);
+    } catch {
+      // Rollback on failure
+      if (snapshot.length) setProjects((prev) => [...snapshot, ...prev]);
+    }
   }
 
+  // Like / Bookmark toggles
+  function handleToggleLike(projectSlug) {
+    setLikedProjects((prev) => { const next = new Set(prev); next.has(projectSlug) ? next.delete(projectSlug) : next.add(projectSlug); return next; });
+  }
+  function handleToggleBookmark(projectSlug) {
+    setBookmarkedProjects((prev) => { const next = new Set(prev); next.has(projectSlug) ? next.delete(projectSlug) : next.add(projectSlug); return next; });
+  }
+
+  // Route guards
+  const PROTECTED = ['/dashboard', '/profile', '/profile/upload', '/profile/upload/details'];
+  const isProtected = PROTECTED.some((p) => pathname === p) || pathname.startsWith('/profile/settings');
+
+  if (currentUser === null) {
+    return (<div className="page-shell" style={{ display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh' }}><p style={{ color:'#888',fontSize:'0.95rem' }}>Loading…</p></div>);
+  }
+  if (currentUser === false && isProtected) {
+    if (typeof window !== 'undefined') window.location.hash = '/login';
+    return null;
+  }
+
+  // Route matching
   const isDashboardPage = pathname === '/dashboard';
   const isDashboardChatPage = pathname === '/dashboard/chat';
   const isLoginPage = pathname === '/login';
@@ -2268,15 +2404,10 @@ function App() {
   const isContributorsPage = pathname === '/contributors';
   const isDashboardContributorsPage = pathname === '/dashboard/contributors';
   const contributorProfileMatch = pathname.match(/^\/contributors\/([^/]+)$/);
-  const activeContributor = contributorProfileMatch
-    ? findContributorBySlug(contributorProfileMatch[1])
-    : null;
-  const activeContributorProjects = activeContributor
-    ? getContributorProjects(publishedProjects, activeContributor.slug)
-    : [];
+  const activeContributor = contributorProfileMatch ? findContributorBySlug(contributorProfileMatch[1]) : null;
+  const activeContributorProjects = activeContributor ? getContributorProjects(publishedProjects, activeContributor.slug) : [];
   const isContributorProfilePage = Boolean(activeContributor);
-  const isAnyContributorsPage =
-    isContributorsPage || isDashboardContributorsPage || isContributorProfilePage;
+  const isAnyContributorsPage = isContributorsPage || isDashboardContributorsPage || isContributorProfilePage;
   const isProfilePage = pathname === '/profile';
   const profileSettingsMatch = pathname.match(/^\/profile\/settings(?:\/([^/]+))?$/);
   const profileSettingsSection = profileSettingsMatch?.[1] || 'general';
@@ -2290,183 +2421,45 @@ function App() {
   const isProjectDetailPage = Boolean(activeProject);
 
   function handleCloseProjectDetail() {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
+    if (typeof window === 'undefined') return;
+    if (window.history.length > 1) { window.history.back(); return; }
     window.location.hash = '/';
   }
 
   if (isDashboardPage) {
-    return (
-      <div className="page-shell page-shell--dashboard">
-        <DashboardPage projects={featuredProjectCards} toAppHref={toAppHref} profile={currentUser} />
-        <Footer />
-      </div>
-    );
+    return (<div className="page-shell page-shell--dashboard"><DashboardPage projects={featuredProjectCards} toAppHref={toAppHref} profile={effectiveUser} onNavigate={navigateTo} /><Footer /></div>);
   }
-
   if (isDashboardChatPage) {
-    return (
-      <div className="page-shell page-shell--dashboard">
-        <main>
-          <ChatWithAiPage
-            toAppHref={toAppHref}
-            profile={currentUser}
-            projects={publishedProjects}
-          />
-        </main>
-        <Footer />
-      </div>
-    );
+    return (<div className="page-shell page-shell--dashboard"><main><ChatWithAiPage toAppHref={toAppHref} profile={effectiveUser} projects={publishedProjects} /></main></div>);
   }
-
   if (isLoginPage || isSignupPage) {
-    return (
-      <div className="page-shell page-shell--login">
-        <main>
-          {isLoginPage ? <LoginPage /> : <SignupPage />}
-        </main>
-      </div>
-    );
+    return (<div className="page-shell page-shell--login"><main>{isLoginPage ? <LoginPage /> : <SignupPage />}</main></div>);
   }
-
   if (isProfileUploadPage) {
-    return (
-      <div className="page-shell page-shell--upload">
-        <main>
-          <UploadShotPage
-            mode={isProfileUploadDetailsPage ? 'details' : 'upload'}
-            toAppHref={toAppHref}
-            contributorDirectory={contributorDirectory}
-            onSaveDraft={handleSaveDraft}
-            onPublishProject={handlePublishProject}
-          />
-        </main>
-      </div>
-    );
+    return (<div className="page-shell page-shell--upload"><main><UploadShotPage mode={isProfileUploadDetailsPage ? 'details' : 'upload'} toAppHref={toAppHref} contributorDirectory={contributorDirectory} onSaveDraft={handleSaveDraft} onPublishProject={handlePublishProject} /></main></div>);
   }
 
   return (
-    <div
-      className={`page-shell ${isAnyShowcasesPage ? 'page-shell--showcases' : ''} ${
-        isAnyContributorsPage ? 'page-shell--contributors' : ''
-      } ${isProfileAreaPage ? 'page-shell--profile' : ''} ${
-        isContributorProfilePage ? 'page-shell--public-profile' : ''
-      } ${
-        isProjectDetailPage ? 'page-shell--project-detail' : ''
-      }`}
-    >
-      {!isProjectDetailPage &&
-      (isDashboardShowcasesPage ||
-        isDashboardContributorsPage ||
-        isProfileAreaPage ||
-        isContributorProfilePage) ? (
-        <DashboardHeader
-          toAppHref={toAppHref}
-          profile={currentUser}
-          activePath={
-            isDashboardShowcasesPage
-              ? '/dashboard/showcases'
-              : isDashboardContributorsPage
-                ? '/dashboard/contributors'
-                : '/dashboard'
-          }
-        />
-      ) : !isProjectDetailPage ? (
-        <Header
-          activePath={
-            isShowcasesPage ? '/showcases' : isContributorsPage ? '/contributors' : '/'
-          }
-        />
-      ) : null}
-
+    <div className={`page-shell ${isAnyShowcasesPage ? 'page-shell--showcases' : ''} ${isAnyContributorsPage ? 'page-shell--contributors' : ''} ${isProfileAreaPage ? 'page-shell--profile' : ''} ${isContributorProfilePage ? 'page-shell--public-profile' : ''} ${isProjectDetailPage ? 'page-shell--project-detail' : ''}`}>
+      {!isProjectDetailPage && (isDashboardShowcasesPage || isDashboardContributorsPage || isProfileAreaPage || isContributorProfilePage) ? (
+        <DashboardHeader toAppHref={toAppHref} profile={effectiveUser} activePath={isDashboardShowcasesPage ? '/dashboard/showcases' : isDashboardContributorsPage ? '/dashboard/contributors' : '/dashboard'} />)
+      : !isProjectDetailPage ? (<Header activePath={isShowcasesPage ? '/showcases' : isContributorsPage ? '/contributors' : '/'} isLoggedIn={Boolean(currentUser)} />)
+      : null}
       <main>
-        {isProjectDetailPage ? (
-          <ProjectDetailPage
-            project={activeProject}
-            onClose={handleCloseProjectDetail}
-            toAppHref={toAppHref}
-            findContributorBySlug={findContributorBySlug}
-          />
-        ) : isProfileSettingsPage ? (
-          <SettingsPage
-            toAppHref={toAppHref}
-            section={profileSettingsSection}
-            profile={currentUser}
-            onSaveGeneral={handleSaveGeneral}
-            onSaveProfile={handleSaveProfile}
-            onSaveSecurity={handleSaveSecurity}
-            onSaveNotifications={handleSaveNotifications}
-          />
-        ) : isProfilePage ? (
-          <ProfilePage
-            toAppHref={toAppHref}
-            profile={currentUser}
-            projects={currentUserProjects}
-            activeTab={activeProfileTab}
-            onTabChange={setActiveProfileTab}
-            onDeleteProject={handleDeleteProject}
-          />
-        ) : isContributorProfilePage ? (
-          <PublicProfilePage
-            contributor={activeContributor}
-            projects={activeContributorProjects}
-            toAppHref={toAppHref}
-          />
-        ) : isAnyContributorsPage ? (
-          <ContributorsPage toAppHref={toAppHref} contributors={contributorDirectory} />
-        ) : isAnyShowcasesPage ? (
-          <ShowcasesPage />
-        ) : isTermsPage ? (
-          <InfoPage
-            eyebrow="Legal"
-            title="Terms of Use"
-            paragraphs={[
-              'Codefolio is intended for showcasing work, discovering contributors, and sharing technical projects responsibly.',
-              'By using the platform, you confirm that the work you publish is yours to share and that external links, screenshots, and contributor information are accurate to the best of your knowledge.',
-              'Project content, portfolio information, and collaboration details should be kept professional, lawful, and respectful of other contributors.',
-            ]}
-            actions={[{ label: 'Create account', href: toAppHref('/signup') }]}
-          />
-        ) : isPrivacyPage ? (
-          <InfoPage
-            eyebrow="Privacy"
-            title="Privacy Policy"
-            paragraphs={[
-              'Codefolio stores account, profile, and project information so contributors can manage their portfolios and collaborate around technical work.',
-              'Public profile details such as your name, location, published projects, and any contact methods you choose to display may be visible to other users.',
-              'Private settings like your account email, draft projects, and unpublished work should remain restricted to your account and authorized platform services.',
-            ]}
-            actions={[{ label: 'Contact us', href: toAppHref('/contact'), variant: 'secondary' }]}
-          />
-        ) : isContactPage ? (
-          <InfoPage
-            eyebrow="Support"
-            title="Contact"
-            paragraphs={[
-              'Questions about Codefolio, project publishing, or contributor profiles can be sent to the platform team.',
-              'Use the contact channel below for support requests, policy questions, or account issues while the backend services are being finalized.',
-            ]}
-            actions={[{ label: 'support@codefolio.dev', href: 'mailto:support@codefolio.dev' }]}
-          />
-        ) : (
-          <LandingPage projects={featuredProjectCards} />
-        )}
+        {isProjectDetailPage ? (<ProjectDetailPage project={activeProject} onClose={handleCloseProjectDetail} toAppHref={toAppHref} findContributorBySlug={findContributorBySlug} likedProjects={likedProjects} bookmarkedProjects={bookmarkedProjects} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} />)
+        : isProfileSettingsPage ? (<SettingsPage toAppHref={toAppHref} section={profileSettingsSection} profile={effectiveUser} onSaveGeneral={handleSaveGeneral} onSaveProfile={handleSaveProfile} onSaveNotifications={handleSaveNotifications} onDeleteAccount={handleDeleteAccount} onLogout={handleLogout} />)
+        : isProfilePage ? (<ProfilePage toAppHref={toAppHref} profile={effectiveUser} projects={currentUserProjects} activeTab={activeProfileTab} onTabChange={setActiveProfileTab} onDeleteProject={handleDeleteProject} />)
+        : isContributorProfilePage ? (<PublicProfilePage contributor={activeContributor} projects={activeContributorProjects} toAppHref={toAppHref} />)
+        : isAnyContributorsPage ? (<ContributorsPage toAppHref={toAppHref} contributors={contributorDirectory} />)
+        : isAnyShowcasesPage ? (<ShowcasesPage />)
+        : isTermsPage ? (<InfoPage eyebrow="Legal" title="Terms of Use" paragraphs={['Codefolio is intended for showcasing work, discovering contributors, and sharing technical projects responsibly.','By using the platform, you confirm that the work you publish is yours to share.','Project content should be kept professional, lawful, and respectful of other contributors.']} actions={[{ label: 'Create account', href: toAppHref('/signup') }]} />)
+        : isPrivacyPage ? (<InfoPage eyebrow="Privacy" title="Privacy Policy" paragraphs={['Codefolio stores account, profile, and project information so contributors can manage their portfolios.','Public profile details such as your name, location, and published projects may be visible to other users.','Private settings like your account email, draft projects, and unpublished work remain restricted to your account.']} actions={[{ label: 'Contact us', href: toAppHref('/contact'), variant: 'secondary' }]} />)
+        : isContactPage ? (<InfoPage eyebrow="Support" title="Contact" paragraphs={['Questions about Codefolio, project publishing, or contributor profiles can be sent to the platform team.','Use the contact channel below for support requests, policy questions, or account issues.']} actions={[{ label: 'support@codefolio.dev', href: 'mailto:support@codefolio.dev' }]} />)
+        : (<LandingPage projects={featuredProjectCards} isLoggedIn={Boolean(currentUser)} />)}
       </main>
-
-      {!isProfileAreaPage ? <Footer /> : null}
+      {!isProfileAreaPage && !isDashboardChatPage ? <Footer /> : null}
     </div>
   );
 }
 
 export default App;
-
-
-
-
