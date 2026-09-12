@@ -166,14 +166,7 @@ const defaultNotificationPreferences = {
   newProjectsInYourStack: false,
 };
 
-const defaultEducationItems = [
-  {
-    id: 'education-1',
-    title: 'Rwanda Coding Academy',
-    meta: 'Software Engineering',
-    period: '2021 - Present',
-  },
-];
+const defaultEducationItems = [];
 
 function serializeList(items = []) {
   return items.join(', ');
@@ -217,14 +210,12 @@ function SettingsPage({
   profile,
   onSaveGeneral,
   onSaveProfile,
-  onSaveSecurity,
   onSaveNotifications,
+  onDeleteAccount,
+  onLogout,
 }) {
   const fileInputRef = useRef(null);
   const [generalFormData, setGeneralFormData] = useState(() => createGeneralFormState(profile));
-  const [securityFormData, setSecurityFormData] = useState({
-    password: '',
-  });
   const [notificationPreferences, setNotificationPreferences] = useState(
     () => profile?.notifications || defaultNotificationPreferences
   );
@@ -672,22 +663,18 @@ function SettingsPage({
 
   function renderSecurityForm() {
     return (
-      <form className="settings-page__form settings-page__form--security" onSubmit={handleSecuritySubmit}>
-        <label className="settings-page__field settings-page__field--security-password">
-          <span className="settings-page__label">Password</span>
-          <input
-            className="settings-page__input settings-page__input--security"
-            type="password"
-            name="password"
-            value={securityFormData.password}
-            onChange={handleSecurityInputChange}
-          />
-        </label>
-
-        <div className="settings-page__security-actions">
-          <button className="settings-page__save-button settings-page__save-button--security" type="submit">
-            Save
-          </button>
+      <div className="settings-page__form settings-page__form--security">
+        <div className="settings-page__section" aria-labelledby="settings-auth-heading">
+          <h2 className="settings-page__section-title settings-page__section-title--large" id="settings-auth-heading">
+            Authentication
+          </h2>
+          <p className="settings-page__section-copy">
+            Codefolio uses passwordless sign-in. You receive a one-time access code by email each time you log in — no password needed.
+          </p>
+          <div className="settings-page__connection">
+            <span style={{ fontSize: '0.9rem', color: '#555' }}>Signed in as</span>
+            <strong style={{ marginLeft: 8 }}>{profile?.accountEmail || profile?.email || '—'}</strong>
+          </div>
         </div>
 
         <section
@@ -700,19 +687,21 @@ function SettingsPage({
           >
             Delete Codefolio Account
           </h2>
-
           <p className="settings-page__section-copy settings-page__section-copy--danger">
             Deleting your account will permanently remove your Codefolio profile and all associated content.
             This action cannot be reversed.
           </p>
-
           <div className="settings-page__security-danger-actions">
-            <button className="settings-page__danger-button" type="button">
+            <button
+              className="settings-page__danger-button"
+              type="button"
+              onClick={onDeleteAccount}
+            >
               Delete Account
             </button>
           </div>
         </section>
-      </form>
+      </div>
     );
   }
 
@@ -855,10 +844,14 @@ function SettingsPage({
             })}
           </nav>
 
-          <a className="settings-page__logout" href={toAppHref('/login')}>
+          <button
+            className="settings-page__logout"
+            type="button"
+            onClick={() => onLogout?.()}
+          >
             <LogoutIcon />
             <span>Logout</span>
-          </a>
+          </button>
         </aside>
 
         <div

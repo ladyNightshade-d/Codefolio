@@ -323,3 +323,20 @@
     font-size: 0.78rem;
   }
 }
+
+/* Error message */
+.login-form__error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fff1f1;
+  color: #c0392b;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+/* Disabled state for submit button */
+.login-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

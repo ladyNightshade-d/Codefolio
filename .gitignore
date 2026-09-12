@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment variables — never commit real secrets
+.env
+.env.local
+.env.production
+# .env.example is safe to commit (no real values)
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +28,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Fix scripts (not needed in repo)
+fix-app.cjs
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
