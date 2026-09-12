@@ -130,12 +130,13 @@ export function DashboardHeader({
   chatActive = false,
   onChatClick,
 }) {
+  const headerClassName = `dashboard-header ${chatActive ? 'dashboard-header--solid' : ''}`;
   const chatButtonClassName = `dashboard-header__chat-button ${
     chatActive ? 'dashboard-header__chat-button--active' : ''
   }`;
 
   return (
-    <header className="dashboard-header">
+    <header className={headerClassName}>
       <div className="container dashboard-header__inner">
         <a className="dashboard-brand" href={toAppHref(brandPath)} aria-label="Codefolio dashboard">
           <DashboardCodeMark />
@@ -178,16 +179,18 @@ export function DashboardHeader({
           <a className="dashboard-header__avatar" href={toAppHref('/profile')} aria-label="Profile">
             <img src={profile?.image || '/me.png'} alt={profile?.name || 'Your profile'} />
           </a>
-          {onChatClick ? (
-            <button className={chatButtonClassName} type="button" onClick={onChatClick}>
-              <PlusIcon />
-              <span>{chatLabel}</span>
-            </button>
-          ) : (
-            <a className={chatButtonClassName} href={toAppHref(chatHref)}>
-              <PlusIcon />
-              <span>{chatLabel}</span>
-            </a>
+          {!chatActive && (
+            onChatClick ? (
+              <button className={chatButtonClassName} type="button" onClick={onChatClick}>
+                <PlusIcon />
+                <span>{chatLabel}</span>
+              </button>
+            ) : (
+              <a className={chatButtonClassName} href={toAppHref(chatHref)}>
+                <PlusIcon />
+                <span>{chatLabel}</span>
+              </a>
+            )
           )}
         </div>
       </div>
@@ -195,9 +198,21 @@ export function DashboardHeader({
   );
 }
 
-function DashboardPage({ projects, toAppHref, profile }) {
+function DashboardPage({ projects, toAppHref, profile, onNavigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [activeTab, setActiveTab] = useState('Discover');
+  const [visibleCount, setVisibleCount] = useState(9);
+
+  const filteredProjects = activeTab === 'Discover'
+    ? projects
+    : projects.filter((p) =>
+        p.tags?.some((t) => t.toLowerCase() === activeTab.toLowerCase()) ||
+        p.techStack?.some((t) => t.toLowerCase().includes(activeTab.toLowerCase())) ||
+        p.stack?.toLowerCase().includes(activeTab.toLowerCase())
+      );
+
+  const visibleProjects = filteredProjects.slice(0, visibleCount);
 
   function handleSearch() {
     const nextQuery = searchQuery.trim();
@@ -306,11 +321,12 @@ function DashboardPage({ projects, toAppHref, profile }) {
               </button>
 
               <div className="dashboard-toolbar__tabs" aria-label="Browse topics">
-                {dashboardBrowseTopics.map((topic, index) => (
+                {dashboardBrowseTopics.map((topic) => (
                   <button
                     key={topic}
-                    className={`dashboard-toolbar__tab ${index === 0 ? 'dashboard-toolbar__tab--active' : ''}`}
+                    className={`dashboard-toolbar__tab ${activeTab === topic ? 'dashboard-toolbar__tab--active' : ''}`}
                     type="button"
+                    onClick={() => { setActiveTab(topic); setVisibleCount(9); }}
                   >
                     {topic}
                   </button>
@@ -326,7 +342,7 @@ function DashboardPage({ projects, toAppHref, profile }) {
 
           <div className="container container--dashboard-projects">
             <div className="dashboard-projects__grid">
-              {projects.map((project) => (
+              {visibleProjects.map((project) => (
                 <article key={project.slug} className="dashboard-project-card">
                   <a className="dashboard-project-card__link" href={toAppHref(`/projects/${project.slug}`)}>
                     <div className="dashboard-project-card__media">
@@ -337,7 +353,6 @@ function DashboardPage({ projects, toAppHref, profile }) {
                         loading="lazy"
                       />
                     </div>
-
                     <div className="dashboard-project-card__content">
                       <div className="dashboard-project-card__top">
                         <h3 className="dashboard-project-card__title">{project.title}</h3>
@@ -350,14 +365,26 @@ function DashboardPage({ projects, toAppHref, profile }) {
                   </a>
                 </article>
               ))}
+
+              {visibleProjects.length === 0 && (
+                <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', padding: '40px 0' }}>
+                  No projects found for &ldquo;{activeTab}&rdquo;.
+                </p>
+              )}
             </div>
 
-            <div className="dashboard-projects__footer">
-              <button className="dashboard-projects__load-more" type="button">
-                <span>Load More Projects</span>
-                <ChevronDownTinyIcon />
-              </button>
-            </div>
+            {visibleCount < filteredProjects.length && (
+              <div className="dashboard-projects__footer">
+                <button
+                  className="dashboard-projects__load-more"
+                  type="button"
+                  onClick={() => setVisibleCount((n) => n + 9)}
+                >
+                  <span>Load More Projects</span>
+                  <ChevronDownTinyIcon />
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -365,10 +392,14 @@ function DashboardPage({ projects, toAppHref, profile }) {
           <div className="container dashboard-cta__inner">
             <h2 className="dashboard-cta__title">Ready to ship?</h2>
             <p className="dashboard-cta__copy">
-              Join the elite community of builders defining the next generation of the web.
+              Join the community of builders defining the next generation of engineering.
             </p>
-            <button className="dashboard-cta__button" type="button">
-              Start Building
+            <button
+              className="dashboard-cta__button"
+              type="button"
+              onClick={() => onNavigate?.('/profile/upload')}
+            >
+              Upload a Project
             </button>
           </div>
         </section>

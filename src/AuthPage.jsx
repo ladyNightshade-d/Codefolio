@@ -1,6 +1,32 @@
 import { useState } from 'react';
 import './login.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+async function sendOtp(email) {
+  const res = await fetch(`${API_BASE}/api/auth/send-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to send code.');
+  return data;
+}
+
+async function verifyOtp(email, code) {
+  const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Invalid code.');
+  return data;
+}
+
 function AuthCodeMark() {
   return (
     <svg
@@ -51,35 +77,51 @@ function AuthPage({ title }) {
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState('email address');
   const [accessCode, setAccessCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  function handleEmailSubmit(event) {
+  async function handleEmailSubmit(event) {
     event.preventDefault();
-
     const nextEmail = email.trim();
+    if (!nextEmail) return;
 
-    if (!nextEmail) {
-      return;
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      await sendOtp(nextEmail);
+      setSentTo(nextEmail);
+      setStep('code');
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    setSentTo(nextEmail);
-    setStep('code');
   }
 
-  function handleCodeSubmit(event) {
+  async function handleCodeSubmit(event) {
     event.preventDefault();
+    if (!accessCode.trim()) return;
 
-    if (!accessCode.trim()) {
-      return;
-    }
-
-    if (typeof window !== 'undefined') {
-      window.location.hash = '/dashboard';
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const { token } = await verifyOtp(sentTo, accessCode.trim());
+      // Persist session token for API calls
+      if (token) sessionStorage.setItem('cf_token', token);
+      if (typeof window !== 'undefined') {
+        window.location.hash = '/dashboard';
+      }
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   function handleEditEmail() {
     setStep('email');
     setAccessCode('');
+    setErrorMessage('');
   }
 
   return (
@@ -96,7 +138,7 @@ function AuthPage({ title }) {
 
           {step === 'email' ? (
             <div className="login-form__stack">
-              <button className="login-form__social" type="button">
+              <button className="login-form__social" type="button" disabled>
                 <GoogleIcon />
                 <span>Continue with Google</span>
               </button>
@@ -119,11 +161,15 @@ function AuthPage({ title }) {
                   autoComplete="email"
                   placeholder="Enter email address"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => { setEmail(event.target.value); setErrorMessage(''); }}
+                  disabled={isLoading}
+                  required
                 />
-
-                <button className="login-form__submit" type="submit">
-                  Continue
+                {errorMessage && (
+                  <p className="login-form__error" role="alert">{errorMessage}</p>
+                )}
+                <button className="login-form__submit" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Sending…' : 'Continue'}
                 </button>
               </form>
             </div>
@@ -151,11 +197,16 @@ function AuthPage({ title }) {
                   autoComplete="one-time-code"
                   placeholder="Enter access code"
                   value={accessCode}
-                  onChange={(event) => setAccessCode(event.target.value)}
+                  onChange={(event) => { setAccessCode(event.target.value); setErrorMessage(''); }}
+                  disabled={isLoading}
+                  maxLength={6}
+                  required
                 />
-
-                <button className="login-form__submit" type="submit">
-                  Continue
+                {errorMessage && (
+                  <p className="login-form__error" role="alert">{errorMessage}</p>
+                )}
+                <button className="login-form__submit" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Verifying…' : 'Continue'}
                 </button>
               </form>
             </div>
