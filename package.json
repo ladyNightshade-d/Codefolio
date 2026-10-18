@@ -4,12 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node api.js && concurrently -n \"client,server\" -c \"cyan,green\" \"vite\" \"node server/index.js\"",
-    "dev:client": "vite",
-    "dev:server": "node --watch server/index.js",
-    "build": "node api.js && vite build",
+    "dev": "node init && concurrently -n \"client,server\" -c \"cyan,green\" \"vite\" \"node server/index.js\"",
+    "dev:client": "node init && vite",
+    "dev:server": "node init && node --watch server/index.js",
+    "build": "node init && vite build",
     "preview": "vite preview",
-    "start": "node api.js && NODE_ENV=production node server/index.js",
+    "start": "node init && NODE_ENV=production node server/index.js",
     "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:watch": "vitest"
